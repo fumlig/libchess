@@ -31,7 +31,7 @@ unsigned long long perft(int depth, position* p, bool divide)
     if(depth == 0) return 1;
 
     uint64_t hash = position_hash(p);
-    struct perft_entry* entry = &perft_table[hash & PERFT_TABLE_MASK];
+    perft_entry* entry = &perft_table[hash & PERFT_TABLE_MASK];
     if(hash == entry->key && depth == entry->depth)
     {
         perft_hits++;
@@ -75,7 +75,7 @@ struct perft_result
     unsigned long long nodes[11];
 };
 
-static struct perft_result perfts[] =
+static perft_result perfts[] =
 {
     
     {.name = "startpos", .fen = POSITION_FEN_START, .depth = 10, .nodes = {1, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860, 84998978956, 2439530234167, 69352859712417}},
@@ -98,7 +98,7 @@ void perft_help(int argc, char* argv[])
         argv[0]
     );
 
-    int n = sizeof(perfts)/sizeof(struct perft_result);
+    int n = sizeof(perfts)/sizeof(perft_result);
     for(int i = 0; i < n; i++)
     {
         printf("%s, depth %d\n", perfts[i].name, perfts[i].depth);
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    struct random r;
+    chess::random r;
     random_init(&r, 2147483647);
     bitboard_init(&r);
     board_init(&r);
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     int result_depth = 0;
     unsigned long long* result_nodes = NULL;
 
-    int n = sizeof(perfts)/sizeof(struct perft_result);
+    int n = sizeof(perfts)/sizeof(perft_result);
     for(int i = 0; i < n; i++)
     {
         if(strcmp(fen, perfts[i].name) == 0)
@@ -138,10 +138,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    struct position p;
+    position p;
     position_from_fen(&p, fen);
 
-    struct timespec begin, end;
+    timespec begin, end;
     clock_gettime(CLOCK_MONOTONIC, &begin);
     
     unsigned long long nodes = perft(depth, &p, divide);

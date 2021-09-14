@@ -16,20 +16,20 @@ enum side
     SIDE_BLACK  = 1,
 };
 
-enum side side_opposite(enum side s);
+side side_opposite(side s);
 
-enum side side_from_char(char c);
+side side_from_char(char c);
 
-char side_to_char(enum side s);
+char side_to_char(side s);
 
 
 
-enum side side_opposite(enum side s)
+side side_opposite(side s)
 {
     return static_cast<side>(!s);
 }
 
-enum side side_from_char(char c)
+side side_from_char(char c)
 {
     switch(c)
     {
@@ -44,7 +44,7 @@ enum side side_from_char(char c)
     }
 }
 
-char side_to_char(enum side s)
+char side_to_char(side s)
 {
     switch(s)
     {

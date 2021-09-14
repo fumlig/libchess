@@ -28,34 +28,34 @@ namespace chess
 #define POSITION_MOVES_SIZE 218 // no positions have been found with more legal moves
 
 
-void position_init(struct random* r);
+void position_init(random* r);
 
 
 struct position
 {
-    struct board board;
-    enum side turn;
+    board board;
+    side turn;
     bool kingside_castle[SIDES];
     bool queenside_castle[SIDES];
-    enum square en_passant;
+    square en_passant;
     int halfmove_clock;
     int fullmove_number;
     uint64_t hash;
 };
 
-void position_from_fen(struct position* p, const char* fen);
-void position_to_fen(const struct position* p, char* fen);
+void position_from_fen(position* p, const char* fen);
+void position_to_fen(const position* p, char* fen);
 
-int position_moves(struct position* p, struct move* moves);
-void position_move(struct position* p, const struct move* m, struct undo* u);
-void position_undo(struct position* p, const struct move* m, const struct undo* u);
+int position_moves(position* p, move* moves);
+void position_move(position* p, const move* m, undo* u);
+void position_undo(position* p, const move* m, const undo* u);
 
-int position_fullmove(struct position* p);
-int position_halfmove(struct position* p);
+int position_fullmove(position* p);
+int position_halfmove(position* p);
 
-uint64_t position_hash(const struct position* p);
-void position_copy(const struct position* src, struct position* dst);
-void position_print(const struct position* p);
+uint64_t position_hash(const position* p);
+void position_copy(const position* src, position* dst);
+void position_print(const position* p);
 
 
 
@@ -65,7 +65,7 @@ static uint64_t kingside_castle_hash[SIDES];
 static uint64_t queenside_castle_hash[SIDES];
 static uint64_t en_passant_hash[FILES];
 
-void position_init(struct random* r)
+void position_init(random* r)
 {
     side_hash = random_generate(r);
 
@@ -81,7 +81,7 @@ void position_init(struct random* r)
 }
 
 
-void position_from_fen(struct position* p, const char* fen)
+void position_from_fen(position* p, const char* fen)
 {
     if(strcmp(fen, "startpos") == 0)
     {
@@ -119,9 +119,9 @@ void position_from_fen(struct position* p, const char* fen)
             continue;
         }
 
-        enum side side;
-        enum piece piece = piece_from_san(board[i], &side);
-        enum square square = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
+        side side;
+        piece piece = piece_from_san(board[i], &side);
+        square square = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
 
         board_set(&p->board, square, side, piece);
 
@@ -180,19 +180,19 @@ void position_from_fen(struct position* p, const char* fen)
     p->fullmove_number = fullmove_number;
 }
 
-void position_to_fen(const struct position* p, char* fen)
+void position_to_fen(const position* p, char* fen)
 {
     int i = 0;
 
-    const struct board* b = &p->board;
+    const board* b = &p->board;
     for(int r = RANK_8; r >= RANK_1; r--)
     {
         int empty = 0;
         for(int f = FILE_A; f <= FILE_H; f++)
         {
-            enum square sq = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
-            enum side s;
-            enum piece p = board_get(b, sq, &s);
+            square sq = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
+            side s;
+            piece p = board_get(b, sq, &s);
 
             if(p == PIECE_NONE)
             {
@@ -227,10 +227,10 @@ void position_to_fen(const struct position* p, char* fen)
 }
 
 
-int position_moves(struct position* p, struct move* moves)
+int position_moves(position* p, move* moves)
 {
-    const struct board* b = &p->board;
-    enum side player = p->turn, opponent = side_opposite(p->turn);
+    const board* b = &p->board;
+    side player = p->turn, opponent = side_opposite(p->turn);
     bitboard occupied = board_occupied(b);
 
     int m = 0;
@@ -296,7 +296,7 @@ int position_moves(struct position* p, struct move* moves)
     // rook moves
     while(rooks)
     {
-        enum square from = bitboard_lsb(rooks);
+        square from = bitboard_lsb(rooks);
         rooks = bitboard_reset(rooks, from);
         bitboard attacks = bitboard_rook_attacks(from, occupied) & attack_mask;
         m += move_list_piecewise(from, attacks, PIECE_NONE, moves+m);
@@ -305,7 +305,7 @@ int position_moves(struct position* p, struct move* moves)
     // knight moves
     while(knights)
     {
-        enum square from = bitboard_lsb(knights);
+        square from = bitboard_lsb(knights);
         knights = bitboard_reset(knights, from);
         bitboard attacks = bitboard_knight_attacks(from) & attack_mask;
         m += move_list_piecewise(from, attacks, PIECE_NONE, moves+m);
@@ -314,7 +314,7 @@ int position_moves(struct position* p, struct move* moves)
     // bishop moves
     while(bishops)
     {
-        enum square from = bitboard_lsb(bishops);
+        square from = bitboard_lsb(bishops);
         bishops = bitboard_reset(bishops, from);
         bitboard attacks = bitboard_bishop_attacks(from, occupied) & attack_mask;
         m += move_list_piecewise(from, attacks, PIECE_NONE, moves+m);
@@ -323,7 +323,7 @@ int position_moves(struct position* p, struct move* moves)
     // queen moves
     while(queens)
     {
-        enum square from = bitboard_lsb(queens);
+        square from = bitboard_lsb(queens);
         queens = bitboard_reset(queens, from);
         bitboard attacks = (bitboard_rook_attacks(from, occupied) | bitboard_bishop_attacks(from, occupied)) & attack_mask;
         m += move_list_piecewise(from, attacks, PIECE_NONE, moves+m);
@@ -332,8 +332,8 @@ int position_moves(struct position* p, struct move* moves)
     // king moves
     if(p->kingside_castle[player])
     {
-        enum square from = bitboard_lsb(kings);
-        enum square to = square_from_file_rank(FILE_G, square_rank(from));
+        square from = bitboard_lsb(kings);
+        square to = square_from_file_rank(FILE_G, square_rank(from));
         bitboard path = kings;
         path |= bitboard_shift(kings, DIRECTION_E);
         path |= bitboard_shift(path, DIRECTION_E);
@@ -346,8 +346,8 @@ int position_moves(struct position* p, struct move* moves)
     }
     if(p->queenside_castle[player])
     {
-        enum square from = bitboard_lsb(kings);
-        enum square to = square_from_file_rank(FILE_C, square_rank(from));
+        square from = bitboard_lsb(kings);
+        square to = square_from_file_rank(FILE_C, square_rank(from));
         bitboard path = kings;
         path |= bitboard_shift(path, DIRECTION_W);
         path |= bitboard_shift(path, DIRECTION_W);
@@ -360,7 +360,7 @@ int position_moves(struct position* p, struct move* moves)
     }
     while(kings)
     {
-        enum square from = bitboard_lsb(kings);
+        square from = bitboard_lsb(kings);
         kings = bitboard_reset(kings, from);
         bitboard attacks = bitboard_king_attacks(from) & attack_mask;
         m += move_list_piecewise(from, attacks, PIECE_NONE, moves+m);
@@ -370,7 +370,7 @@ int position_moves(struct position* p, struct move* moves)
     int n = 0;
     for(int i = 0; i < m; i++)
     {
-        struct undo u;
+        undo u;
         position_move(p, &moves[i], &u);
         if(!(board_attacks(b, opponent) & board_side_piece(b, player, PIECE_KING))) moves[n++] = moves[i];
         position_undo(p, &moves[i], &u);
@@ -379,7 +379,7 @@ int position_moves(struct position* p, struct move* moves)
     return n;
 }
 
-void position_move(struct position *p, const struct move* m, struct undo* u)
+void position_move(position *p, const move* m, undo* u)
 {
     if(u != NULL)
     {
@@ -391,10 +391,10 @@ void position_move(struct position *p, const struct move* m, struct undo* u)
         u->queenside_castle[SIDE_BLACK] = p->queenside_castle[SIDE_BLACK];
     }
 
-    struct board* b = &p->board;
-    enum side side;
-    enum piece piece = board_get(b, m->from, &side);
-    enum square ep = p->en_passant;
+    board* b = &p->board;
+    side side;
+    piece piece = board_get(b, m->from, &side);
+    square ep = p->en_passant;
 
     board_set(b, m->from, SIDE_NONE, PIECE_NONE);
     if(m->promote != PIECE_NONE) board_set(b, m->to, side, m->promote);
@@ -414,7 +414,7 @@ void position_move(struct position *p, const struct move* m, struct undo* u)
         else if(m->to == ep)
         {
             // en passant capture
-            enum square ep_capture = square_from_file_rank(square_file(ep), rank_side(RANK_5, side));
+            square ep_capture = square_from_file_rank(square_file(ep), rank_side(RANK_5, side));
             board_set(b, ep_capture, SIDE_NONE, PIECE_NONE);
         }
     }
@@ -431,7 +431,7 @@ void position_move(struct position *p, const struct move* m, struct undo* u)
             p->hash ^= queenside_castle_hash[side];
         }
         
-        enum rank rank_first = rank_side(RANK_1, side);
+        rank rank_first = rank_side(RANK_1, side);
 
         if(m->from == square_from_file_rank(FILE_E, rank_first))
         {
@@ -478,11 +478,11 @@ void position_move(struct position *p, const struct move* m, struct undo* u)
     p->hash ^= side_hash;
 }
 
-void position_undo(struct position *p, const struct move* m, const struct undo* u)
+void position_undo(position *p, const move* m, const undo* u)
 {
-    struct board* b = &p->board;
-    enum side side;
-    enum piece piece = board_get(b, m->to, &side);
+    board* b = &p->board;
+    side side;
+    piece piece = board_get(b, m->to, &side);
 
     board_set(b, m->from, side, piece);
     board_set(b, m->to, SIDE_NONE, PIECE_NONE);
@@ -518,13 +518,13 @@ void position_undo(struct position *p, const struct move* m, const struct undo* 
     {
         if(m->to == u->en_passant)
         {
-            enum square ep_capture = square_from_file_rank(square_file(u->en_passant), rank_side(RANK_5, side));
+            square ep_capture = square_from_file_rank(square_file(u->en_passant), rank_side(RANK_5, side));
             board_set(b, ep_capture, side_opposite(side), PIECE_PAWN);
         }
     }
     else if(piece == PIECE_KING)
     {
-        enum rank rank_first = rank_side(RANK_1, side);
+        rank rank_first = rank_side(RANK_1, side);
 
         if(m->from == square_from_file_rank(FILE_E, rank_first))
         {
@@ -548,23 +548,23 @@ void position_undo(struct position *p, const struct move* m, const struct undo* 
 }
 
 
-int position_fullmove(struct position* p)
+int position_fullmove(position* p)
 {
     return p->fullmove_number;
 }
 
-int position_halfmove(struct position* p)
+int position_halfmove(position* p)
 {
     return (p->fullmove_number - 1)*2 + p->turn;
 }
 
 
-uint64_t position_hash(const struct position* p)
+uint64_t position_hash(const position* p)
 {
     return p->hash ^ p->board.hash;
 }
 
-void position_copy(const struct position* src, struct position* dst)
+void position_copy(const position* src, position* dst)
 {
     board_copy(&src->board, &dst->board);
     
@@ -580,7 +580,7 @@ void position_copy(const struct position* src, struct position* dst)
     dst->hash = src->hash;
 }
 
-void position_print(const struct position* p)
+void position_print(const position* p)
 {
     board_print(&p->board, false, true);
     printf("turn: %c\n", side_to_char(p->turn));

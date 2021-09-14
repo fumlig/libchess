@@ -26,27 +26,27 @@ typedef uint64_t bitboard;
 #define BITBOARD_RANK_1 (bitboard)0xFF
 
 
-void bitboard_init(struct random* r);
+void bitboard_init(random* r);
 
 
 //
 // operations
 //
 
-bool bitboard_get(bitboard bb, enum square sq);
-bitboard bitboard_set(bitboard bb, enum square sq);
-bitboard bitboard_toggle(bitboard bb, enum square sq);
-bitboard bitboard_reset(bitboard bb, enum square sq);
+bool bitboard_get(bitboard bb, square sq);
+bitboard bitboard_set(bitboard bb, square sq);
+bitboard bitboard_toggle(bitboard bb, square sq);
+bitboard bitboard_reset(bitboard bb, square sq);
 
-bitboard bitboard_square(enum square sq);
-bitboard bitboard_file(enum file f);
-bitboard bitboard_rank(enum rank r);
+bitboard bitboard_square(square sq);
+bitboard bitboard_file(file f);
+bitboard bitboard_rank(rank r);
 
-bitboard bitboard_shift(bitboard bb, enum direction d);
-bitboard bitboard_ray(bitboard bb, enum direction d, bitboard occupied);
+bitboard bitboard_shift(bitboard bb, direction d);
+bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied);
 
-enum square bitboard_lsb(bitboard bb);
-enum square bitboard_msb(bitboard bb);
+square bitboard_lsb(bitboard bb);
+square bitboard_msb(bitboard bb);
 int bitboard_count(bitboard bb);
 
 
@@ -61,7 +61,7 @@ void bitboard_print(bitboard bb);
 // moves
 //
 
-bitboard bitboard_rook_attacks(enum square sq, bitboard occupied);
+bitboard bitboard_rook_attacks(square sq, bitboard occupied);
 bitboard bitboard_knight_attacks(enum square sq);
 bitboard bitboard_bishop_attacks(enum square sq, bitboard occupied);
 bitboard bitboard_queen_attacks(enum square sq, bitboard occupied);
@@ -76,13 +76,13 @@ struct magic
     unsigned shift;
 };
 
-unsigned magic_index(struct magic* m, bitboard occupied)
+unsigned magic_index(magic* m, bitboard occupied)
 {
     return ((occupied & m->mask) * m->magic) >> m->shift;
 }
 
-static struct magic rook_magics[SQUARES];
-static struct magic bishop_magics[SQUARES];
+static magic rook_magics[SQUARES];
+static magic bishop_magics[SQUARES];
 
 
 static bitboard rook_attacks[0x19000];
@@ -91,17 +91,17 @@ static bitboard bishop_attacks[0x1480];
 static bitboard king_attacks[SQUARES];
 
 
-static enum direction rook_directions[] = {DIRECTION_N, DIRECTION_E, DIRECTION_S, DIRECTION_W};
-static enum direction knight_directions[] = {DIRECTION_NNE, DIRECTION_ENE, DIRECTION_ESE, DIRECTION_SSE, DIRECTION_SSW, DIRECTION_WSW, DIRECTION_WNW, DIRECTION_NNW};
-static enum direction bishop_directions[] = {DIRECTION_NE, DIRECTION_SE, DIRECTION_SW, DIRECTION_NW};
-static enum direction king_directions[] = {DIRECTION_N, DIRECTION_NE, DIRECTION_E, DIRECTION_SE, DIRECTION_S, DIRECTION_SW, DIRECTION_W, DIRECTION_NW};
+static direction rook_directions[] = {DIRECTION_N, DIRECTION_E, DIRECTION_S, DIRECTION_W};
+static direction knight_directions[] = {DIRECTION_NNE, DIRECTION_ENE, DIRECTION_ESE, DIRECTION_SSE, DIRECTION_SSW, DIRECTION_WSW, DIRECTION_WNW, DIRECTION_NNW};
+static direction bishop_directions[] = {DIRECTION_NE, DIRECTION_SE, DIRECTION_SW, DIRECTION_NW};
+static direction king_directions[] = {DIRECTION_N, DIRECTION_NE, DIRECTION_E, DIRECTION_SE, DIRECTION_S, DIRECTION_SW, DIRECTION_W, DIRECTION_NW};
 
 
 // optimal PRNG seeds to pick the correct magics in the shortest time ~stockfish
 //static int magic_seeds[RANKS] = {728, 10316, 55013, 32803, 12281, 15100, 16645, 255};
 
 
-void shift_table_init(bitboard* attacks, enum direction* directions)
+void shift_table_init(bitboard* attacks, direction* directions)
 {
     for(int i = SQUARE_A1; i <= SQUARE_H8; i++)
     {
@@ -121,7 +121,7 @@ void shift_table_init(bitboard* attacks, enum direction* directions)
     }
 }
 
-void ray_table_init(bitboard* attacks, struct magic* magics, enum direction* directions, struct random* r)
+void ray_table_init(bitboard* attacks, magic* magics, direction* directions, random* r)
 {
     bitboard occupancy[4096];
     bitboard reference[4096];
@@ -168,7 +168,7 @@ void ray_table_init(bitboard* attacks, struct magic* magics, enum direction* dir
         
         // initialize pseudo-random number generator
         //int seed = magic_seeds[square_rank(sq)];
-        //struct random r;
+        //random r;
         //random_init(&r, seed);
 
         // randomize until magic number that works is found
@@ -200,7 +200,7 @@ void ray_table_init(bitboard* attacks, struct magic* magics, enum direction* dir
 }
 
 
-void bitboard_init(struct random* r)
+void bitboard_init(random* r)
 {
     ray_table_init(rook_attacks, rook_magics, rook_directions, r);
     shift_table_init(knight_attacks, knight_directions);
@@ -209,12 +209,12 @@ void bitboard_init(struct random* r)
 }
 
 
-bitboard bitboard_pawn_east_attacks(bitboard bb, enum side s)
+bitboard bitboard_pawn_east_attacks(bitboard bb, side s)
 {
     return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + DIRECTION_E));
 }
 
-bitboard bitboard_pawn_west_attacks(bitboard bb, enum side s)
+bitboard bitboard_pawn_west_attacks(bitboard bb, side s)
 {
     return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + DIRECTION_W));
 }
@@ -248,22 +248,22 @@ bitboard bitboard_king_attacks(enum square sq)
 }
 
 
-bool bitboard_get(bitboard bb, enum square sq)
+bool bitboard_get(bitboard bb, square sq)
 {
     return bb & bitboard_square(sq);
 }
 
-bitboard bitboard_set(bitboard bb, enum square sq)
+bitboard bitboard_set(bitboard bb, square sq)
 {
     return bb | bitboard_square(sq);
 }
 
-bitboard bitboard_toggle(bitboard bb, enum square sq)
+bitboard bitboard_toggle(bitboard bb, square sq)
 {
     return bb ^ bitboard_square(sq);
 }
 
-bitboard bitboard_reset(bitboard bb, enum square sq)
+bitboard bitboard_reset(bitboard bb, square sq)
 {
     return bb & ~bitboard_square(sq);
 }
@@ -285,7 +285,7 @@ bitboard bitboard_rank(enum rank r)
 }
 
 
-bitboard bitboard_shift(bitboard bb, enum direction d)
+bitboard bitboard_shift(bitboard bb, direction d)
 {
     if(d > 0)
     {
@@ -329,7 +329,7 @@ bitboard bitboard_shift(bitboard bb, enum direction d)
     return bb;
 }
 
-bitboard bitboard_ray(bitboard bb, enum direction d, bitboard occupied)
+bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
 {
     bitboard shift = bb;
     bitboard ray = 0;
@@ -365,7 +365,7 @@ void bitboard_print(bitboard bb)
     {
         for(int f = FILE_A; f <= FILE_H; f++)
         {
-            enum square s = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
+            square s = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
             putchar(bitboard_get(bb, s) ? '1' : '.');
         }
         putchar('\n');

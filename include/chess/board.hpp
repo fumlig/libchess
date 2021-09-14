@@ -23,13 +23,13 @@ struct move;
 
 
 
-void board_init(struct random* r);
+void board_init(random* r);
 
 
 struct board
 {
-    enum side sides[SQUARES];
-    enum piece pieces[SQUARES];
+    side sides[SQUARES];
+    piece pieces[SQUARES];
 
     bitboard side_bb[SIDES];
     bitboard piece_bb[PIECES];
@@ -40,28 +40,28 @@ struct board
 
 void board_clear(struct board* b);
 
-enum piece board_get(const struct board* b, enum square sq, enum side* s);
-void board_set(struct board* b, enum square sq, enum side s, enum piece p);
+piece board_get(const board* b, square sq, side* s);
+void board_set(board* b, square sq, side s, piece p);
 
 
-bitboard board_empty(const struct board* b);
-bitboard board_occupied(const struct board* b);
-bitboard board_side(const struct board* b, enum side s);
-bitboard board_piece(const struct board* b, enum piece p);
-bitboard board_side_piece(const struct board* b, enum side s, enum piece p);
-bitboard board_attacks(const struct board* b, enum side s);
+bitboard board_empty(const board* b);
+bitboard board_occupied(const board* b);
+bitboard board_side(const board* b, side s);
+bitboard board_piece(const board* b, piece p);
+bitboard board_side_piece(const board* b, side s, piece p);
+bitboard board_attacks(const board* b, side s);
 
 
-uint64_t board_hash(const struct board* b);
-void board_copy(const struct board* src, struct board* dst);
-void board_print(const struct board* b, bool figurine, bool coordinates);
+uint64_t board_hash(const board* b);
+void board_copy(const board* src, board* dst);
+void board_print(const board* b, bool figurine, bool coordinates);
 
 
 
 static uint64_t board_hash_keys[SQUARES][SIDES][PIECES];
 
 
-void board_init(struct random* r)
+void board_init(random* r)
 {
     for(int i = SQUARE_A1; i <= SQUARE_H8; i++)
     {
@@ -77,7 +77,7 @@ void board_init(struct random* r)
 }
 
 
-void board_clear(struct board* b)
+void board_clear(board* b)
 {
     for(int s = SQUARE_A1; s <= SQUARE_H8; s++)
     {
@@ -96,16 +96,16 @@ void board_clear(struct board* b)
     b->hash = 0;
 }
 
-enum piece board_get(const struct board* b, enum square sq, enum side* s)
+piece board_get(const board* b, square sq, side* s)
 {
     if(s != NULL) *s = b->sides[sq];
     return b->pieces[sq];
 }
 
-void board_set(struct board* b, enum square sq, enum side s, enum piece p)
+void board_set(board* b, square sq, side s, piece p)
 {
-    enum side s_prev = b->sides[sq];
-    enum piece p_prev = b->pieces[sq];
+    side s_prev = b->sides[sq];
+    piece p_prev = b->pieces[sq];
 
     b->sides[sq] = s;
     b->pieces[sq] = p;
@@ -131,32 +131,32 @@ void board_set(struct board* b, enum square sq, enum side s, enum piece p)
     }
 }
 
-bitboard board_empty(const struct board* b)
+bitboard board_empty(const board* b)
 {
     return ~(b->side_bb[SIDE_WHITE] | b->side_bb[SIDE_BLACK]);
 }
 
-bitboard board_occupied(const struct board* b)
+bitboard board_occupied(const board* b)
 {
     return b->side_bb[SIDE_WHITE] | b->side_bb[SIDE_BLACK];
 }
 
-bitboard board_side(const struct board* b, enum side s)
+bitboard board_side(const board* b, side s)
 {
     return b->side_bb[s];
 }
 
-bitboard board_piece(const struct board* b, enum piece p)
+bitboard board_piece(const board* b, piece p)
 {
     return b->piece_bb[p];
 }
 
-bitboard board_side_piece(const struct board* b, enum side s, enum piece p)
+bitboard board_side_piece(const board* b, side s, piece p)
 {
     return b->side_bb[s] & b->piece_bb[p];
 }
 
-bitboard board_attacks(const struct board* b, enum side s)
+bitboard board_attacks(const board* b, side s)
 {
     bitboard pawns = board_side_piece(b, s, PIECE_PAWN);
     bitboard rooks = board_side_piece(b, s, PIECE_ROOK);
@@ -172,35 +172,35 @@ bitboard board_attacks(const struct board* b, enum side s)
 
     while(rooks)
     {
-        enum square from = bitboard_lsb(rooks);
+        square from = bitboard_lsb(rooks);
         rooks = bitboard_reset(rooks, from);
         attacks |= bitboard_rook_attacks(from, board_occupied(b));
     }
 
     while(knights)
     {
-        enum square from = bitboard_lsb(knights);
+        square from = bitboard_lsb(knights);
         knights = bitboard_reset(knights, from);
         attacks |= bitboard_knight_attacks(from);
     }
 
     while(bishops)
     {
-        enum square from = bitboard_lsb(bishops);
+        square from = bitboard_lsb(bishops);
         bishops = bitboard_reset(bishops, from);
         attacks |= bitboard_bishop_attacks(from, board_occupied(b));
     }
 
     while(queens)
     {
-        enum square from = bitboard_lsb(queens);
+        square from = bitboard_lsb(queens);
         queens = bitboard_reset(queens, from);
         attacks |= (bitboard_rook_attacks(from, board_occupied(b)) | bitboard_bishop_attacks(from, board_occupied(b)));
     }
 
     while(kings)
     {
-        enum square from = bitboard_lsb(kings);
+        square from = bitboard_lsb(kings);
         kings = bitboard_reset(kings, from);
         attacks |= bitboard_king_attacks(from);
     }
@@ -209,12 +209,12 @@ bitboard board_attacks(const struct board* b, enum side s)
 }
 
 
-uint64_t board_hash(const struct board* b)
+uint64_t board_hash(const board* b)
 {
     return b->hash;
 }
 
-void board_copy(const struct board* src, struct board* dst)
+void board_copy(const board* src, board* dst)
 {
     for(int i = SQUARE_A1; i <= SQUARE_H8; i++)
     {
@@ -237,15 +237,15 @@ void board_copy(const struct board* src, struct board* dst)
     dst->hash = src->hash;
 }
 
-void board_print(const struct board* b, bool figurine, bool coordinates)
+void board_print(const board* b, bool figurine, bool coordinates)
 {
     for(int r = RANK_8; r >= RANK_1; r--)
     {
         for(int f = FILE_A; f <= FILE_H; f++)
         {
-            enum square sq = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
-            enum side s;
-            enum piece p = board_get(b, sq, &s);
+            square sq = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
+            side s;
+            piece p = board_get(b, sq, &s);
 
             if(figurine) printf("%s", piece_to_fan(p, s));
             else printf("%c", piece_to_san(p, s));

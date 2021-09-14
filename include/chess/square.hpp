@@ -27,8 +27,8 @@ enum file
     FILE_H = 7
 };
 
-enum file file_from_char(char c);
-char file_to_char(enum file f);
+file file_from_char(char c);
+char file_to_char(file f);
 
 enum rank
 {
@@ -42,10 +42,10 @@ enum rank
     RANK_8 = 7,
 };
 
-enum rank rank_side(enum rank r, enum side s);
+rank rank_side(rank r, side s);
 
-enum rank rank_from_char(char c);
-char rank_to_char(enum rank f);
+rank rank_from_char(char c);
+char rank_to_char(rank f);
 
 
 enum square
@@ -117,64 +117,64 @@ enum square
     SQUARE_H8 = 63
 };
 
-enum file square_file(enum square sq);
-enum rank square_rank(enum square sq);
-enum square square_from_file_rank(enum file f, enum rank r);
-enum square square_from_string(const char* string);
-void square_to_string(enum square sq, char* string);
-void square_print(enum square sq);
+file square_file(square sq);
+rank square_rank(square sq);
+square square_from_file_rank(file f, rank r);
+square square_from_string(const char* string);
+void square_to_string(square sq, char* string);
+void square_print(square sq);
 
 
 
-enum file file_from_char(char c)
+file file_from_char(char c)
 {
     return static_cast<file>(c - 'a');
 }
 
-char file_to_char(enum file f)
+char file_to_char(file f)
 {
     return 'a' + f;
 }
 
 
-enum rank rank_side(enum rank r, enum side s)
+rank rank_side(rank r, side s)
 {
     return static_cast<rank>(r*side_opposite(s) + (RANK_8-r)*s);
 }
 
-enum rank rank_from_char(char c)
+rank rank_from_char(char c)
 {
     return static_cast<rank>(c - '1');
 }
 
-char rank_to_char(enum rank r)
+char rank_to_char(rank r)
 {
     return '1' + r;
 }
 
-enum file square_file(enum square sq)
+file square_file(square sq)
 {
     return static_cast<file>(sq % 8);
 }
 
-enum rank square_rank(enum square sq)
+rank square_rank(square sq)
 {
     return static_cast<rank>(sq / 8);
 }
 
-enum square square_from_file_rank(enum file f, enum rank r)
+square square_from_file_rank(file f, rank r)
 {
     return static_cast<square>(r*8 + f);
 }
 
-enum square square_from_string(const char* string)
+square square_from_string(const char* string)
 {
-    enum file f = file_from_char(string[0]);
-    enum rank r = rank_from_char(string[1]);
+    file f = file_from_char(string[0]);
+    rank r = rank_from_char(string[1]);
     return square_from_file_rank(f, r);
 }
 
-void square_to_string(enum square sq, char* string)
+void square_to_string(square sq, char* string)
 {
     if(sq == SQUARE_NONE)
     {
@@ -188,7 +188,7 @@ void square_to_string(enum square sq, char* string)
     string[2] = '\0';
 }
 
-void square_print(enum square sq)
+void square_print(square sq)
 {
     char string[3];
     square_to_string(sq, string);

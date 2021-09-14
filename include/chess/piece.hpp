@@ -26,7 +26,7 @@ enum piece
 };
 
 
-enum piece piece_from_san(char san, side* s)
+piece piece_from_san(char san, side* s)
 {
     if(s != NULL) *s = san < 'a' ? SIDE_WHITE : SIDE_BLACK;
     switch(san)
@@ -54,7 +54,7 @@ enum piece piece_from_san(char san, side* s)
     }
 }
 
-char piece_to_san(enum piece p, enum side s)
+char piece_to_san(piece p, side s)
 {
     if(p == PIECE_NONE) return '.';
 
@@ -72,7 +72,7 @@ char piece_to_san(enum piece p, enum side s)
     }
 }
 
-const char* piece_to_fan(enum piece p, enum side s)
+const char* piece_to_fan(piece p, side s)
 {
     if(p == PIECE_NONE) return ".";
 

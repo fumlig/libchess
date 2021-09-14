@@ -34,18 +34,18 @@ enum direction
     DIRECTION_NNW   = +15
 };
 
-enum direction direction_opposite(enum direction d);
-enum direction direction_forward(enum side s);
+direction direction_opposite(direction d);
+direction direction_forward(side s);
 
-void direction_print(enum direction d);
+void direction_print(direction d);
 
 
-enum direction direction_opposite(enum direction d)
+direction direction_opposite(direction d)
 {
     return static_cast<direction>((d + 8) % 16);
 }
 
-enum direction direction_forward(enum side s)
+direction direction_forward(side s)
 {
     switch(s)
     {
@@ -60,7 +60,7 @@ enum direction direction_forward(enum side s)
 }
 
 
-void direction_print(enum direction d)
+void direction_print(direction d)
 {
     switch(d)
     {

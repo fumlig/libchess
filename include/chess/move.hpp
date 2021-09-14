@@ -31,8 +31,8 @@ struct undo
     // irreversible information of a move
     piece capture;
     square en_passant;
-    bool kingside_castle[SIDES];
-    bool queenside_castle[SIDES];
+    bool kingside_castle[sides];
+    bool queenside_castle[sides];
 };
 
 

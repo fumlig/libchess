@@ -6,14 +6,14 @@ namespace chess
 {
 
 
-#define SIDES   2
+const int sides = 2;
 
 
 enum side
 {
-    SIDE_NONE   = -1,
-    SIDE_WHITE  = 0,
-    SIDE_BLACK  = 1,
+    side_none   = -1,
+    side_white  = 0,
+    side_black  = 1,
 };
 
 
@@ -28,12 +28,12 @@ side side_from_char(char c)
     {
     case 'W':
     case 'w':
-        return SIDE_WHITE;
+        return side_white;
     case 'B':
     case 'b':
-        return SIDE_BLACK;
+        return side_black;
     default:
-        return SIDE_NONE;
+        return side_none;
     }
 }
 
@@ -41,11 +41,11 @@ char side_to_char(side s)
 {
     switch(s)
     {
-    case SIDE_WHITE:
+    case side_white:
         return 'w';
-    case SIDE_BLACK:
+    case side_black:
         return 'b';
-    case SIDE_NONE:
+    case side_none:
     default:
         return '-';
     }

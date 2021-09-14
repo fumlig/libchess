@@ -9,27 +9,27 @@ namespace chess
 {
 
 
-#define DIRECTIONS 16
+const int directions = 16;
 
 enum direction
 {
-    DIRECTION_NONE  = 0,
-    DIRECTION_N     = +8,
-    DIRECTION_NE    = +9,
-    DIRECTION_E     = +1,
-    DIRECTION_SE    = -7,
-    DIRECTION_S     = -8,
-    DIRECTION_SW    = -9,
-    DIRECTION_W     = -1,
-    DIRECTION_NW    = +7,
-    DIRECTION_NNE   = +17,
-    DIRECTION_ENE   = +10,
-    DIRECTION_ESE   = -6,
-    DIRECTION_SSE   = -15,
-    DIRECTION_SSW   = -17,
-    DIRECTION_WSW   = -10,
-    DIRECTION_WNW   = +6,
-    DIRECTION_NNW   = +15
+    direction_none  = 0,
+    direction_n     = +8,
+    direction_ne    = +9,
+    direction_e     = +1,
+    direction_se    = -7,
+    direction_s     = -8,
+    direction_sw    = -9,
+    direction_w     = -1,
+    direction_nw    = +7,
+    direction_nne   = +17,
+    direction_ene   = +10,
+    direction_ese   = -6,
+    direction_sse   = -15,
+    direction_ssw   = -17,
+    direction_wsw   = -10,
+    direction_wnw   = +6,
+    direction_nnw   = +15
 };
 
 direction direction_opposite(direction d)
@@ -41,13 +41,13 @@ direction direction_forward(side s)
 {
     switch(s)
     {
-    case SIDE_WHITE:
-        return DIRECTION_N;
-    case SIDE_BLACK:
-        return DIRECTION_S;
-    case SIDE_NONE:
+    case side_white:
+        return direction_n;
+    case side_black:
+        return direction_s;
+    case side_none:
     default:
-        return DIRECTION_NONE;
+        return direction_none;
     }
 }
 

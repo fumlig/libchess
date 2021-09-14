@@ -19,49 +19,45 @@ namespace chess
 using bitboard = std::uint64_t;
 
 
-#define BITBOARD_EMPTY  (bitboard)0
-#define BITBOARD_FULL   (bitboard)~0ULL
-
-#define BITBOARD_FILE_A (bitboard)0x0101010101010101
-#define BITBOARD_RANK_1 (bitboard)0xFF
+const bitboard empty_mask = 0ULL;
+const bitboard full_mask = ~0ULL;
 
 
 
-
-bitboard bitboard_square(square sq)
+bitboard square_mask(square sq)
 {
-    return (bitboard)1 << sq;
+    return 1ULL << sq;
 }
 
-bitboard bitboard_file(file f)
+bitboard file_mask(file f)
 {
-    return (bitboard)BITBOARD_FILE_A << f;
+    return 0x0101010101010101ULL << f;
 }
 
-bitboard bitboard_rank(rank r)
+bitboard rank_mask(rank r)
 {
-    return (bitboard)BITBOARD_RANK_1 << (r*8);
+    return 0xFFULL << (r*8);
 }
 
 
 bool bitboard_get(bitboard bb, square sq)
 {
-    return bb & bitboard_square(sq);
+    return bb & square_mask(sq);
 }
 
 bitboard bitboard_set(bitboard bb, square sq)
 {
-    return bb | bitboard_square(sq);
+    return bb | square_mask(sq);
 }
 
 bitboard bitboard_toggle(bitboard bb, square sq)
 {
-    return bb ^ bitboard_square(sq);
+    return bb ^ square_mask(sq);
 }
 
 bitboard bitboard_reset(bitboard bb, square sq)
 {
-    return bb & ~bitboard_square(sq);
+    return bb & ~square_mask(sq);
 }
 
 
@@ -78,31 +74,31 @@ bitboard bitboard_shift(bitboard bb, direction d)
 
     switch(d)
     {
-    case DIRECTION_E:
-    case DIRECTION_NE:
-    case DIRECTION_SE:
-    case DIRECTION_NNE:
-    case DIRECTION_SSE:
-        bb &= ~bitboard_file(FILE_A);
+    case direction_e:
+    case direction_ne:
+    case direction_se:
+    case direction_nne:
+    case direction_sse:
+        bb &= ~file_mask(file_a);
         break;
-    case DIRECTION_W:
-    case DIRECTION_NW:
-    case DIRECTION_SW:
-    case DIRECTION_NNW:
-    case DIRECTION_SSW:
-        bb &= ~bitboard_file(FILE_H);
+    case direction_w:
+    case direction_nw:
+    case direction_sw:
+    case direction_nnw:
+    case direction_ssw:
+        bb &= ~file_mask(file_h);
         break;
-    case DIRECTION_ENE:
-    case DIRECTION_ESE:
-        bb &= ~(bitboard_file(FILE_A) | bitboard_file(FILE_B));
+    case direction_ene:
+    case direction_ese:
+        bb &= ~(file_mask(file_a) | file_mask(file_b));
         break;
-    case DIRECTION_WNW:
-    case DIRECTION_WSW:
-        bb &= ~(bitboard_file(FILE_G) | bitboard_file(FILE_H));
+    case direction_wnw:
+    case direction_wsw:
+        bb &= ~(file_mask(file_g) | file_mask(file_h));
         break;
-    case DIRECTION_N:
-    case DIRECTION_S:
-    case DIRECTION_NONE:
+    case direction_n:
+    case direction_s:
+    case direction_none:
     default:
         break;
     }
@@ -130,7 +126,7 @@ square bitboard_lsb(bitboard bb)
 
 square bitboard_msb(bitboard bb)
 {
-    return static_cast<square>(SQUARE_H8 - std::countl_zero(bb));
+    return static_cast<square>(square_h8 - std::countl_zero(bb));
 }
 
 int bitboard_count(bitboard bb)
@@ -154,33 +150,33 @@ unsigned magic_index(magic* m, bitboard occupied)
     return ((occupied & m->mask) * m->magic) >> m->shift;
 }
 
-static magic rook_magics[SQUARES];
-static magic bishop_magics[SQUARES];
+static magic rook_magics[squares];
+static magic bishop_magics[squares];
 
 
 static bitboard rook_attacks[0x19000];
-static bitboard knight_attacks[SQUARES];
+static bitboard knight_attacks[squares];
 static bitboard bishop_attacks[0x1480];
-static bitboard king_attacks[SQUARES];
+static bitboard king_attacks[squares];
 
 
-static direction rook_directions[] = {DIRECTION_N, DIRECTION_E, DIRECTION_S, DIRECTION_W};
-static direction knight_directions[] = {DIRECTION_NNE, DIRECTION_ENE, DIRECTION_ESE, DIRECTION_SSE, DIRECTION_SSW, DIRECTION_WSW, DIRECTION_WNW, DIRECTION_NNW};
-static direction bishop_directions[] = {DIRECTION_NE, DIRECTION_SE, DIRECTION_SW, DIRECTION_NW};
-static direction king_directions[] = {DIRECTION_N, DIRECTION_NE, DIRECTION_E, DIRECTION_SE, DIRECTION_S, DIRECTION_SW, DIRECTION_W, DIRECTION_NW};
+static direction rook_directions[] = {direction_n, direction_e, direction_s, direction_w};
+static direction knight_directions[] = {direction_nne, direction_ene, direction_ese, direction_sse, direction_ssw, direction_wsw, direction_wnw, direction_nnw};
+static direction bishop_directions[] = {direction_ne, direction_se, direction_sw, direction_nw};
+static direction king_directions[] = {direction_n, direction_ne, direction_e, direction_se, direction_s, direction_sw, direction_w, direction_nw};
 
 
 // optimal PRNG seeds to pick the correct magics in the shortest time ~stockfish
-//static int magic_seeds[RANKS] = {728, 10316, 55013, 32803, 12281, 15100, 16645, 255};
+//static int magic_seeds[ranks] = {728, 10316, 55013, 32803, 12281, 15100, 16645, 255};
 
 
 void shift_table_init(bitboard* attacks, direction* directions)
 {
-    for(int i = SQUARE_A1; i <= SQUARE_H8; i++)
+    for(int i = square_a1; i <= square_h8; i++)
     {
         square sq = static_cast<square>(i);
 
-        bitboard sq_bb = bitboard_square(sq);
+        bitboard sq_bb = square_mask(sq);
 
         // initialize knight attacks table
         attacks[sq] = bitboard_shift(sq_bb, directions[0])
@@ -202,24 +198,24 @@ void ray_table_init(bitboard* attacks, magic* magics, direction* directions, ran
     int count = 0;
     int size = 0;
 
-    for(int i = SQUARE_A1; i <= SQUARE_H8; i++)
+    for(int i = square_a1; i <= square_h8; i++)
     {
         square sq = static_cast<square>(i);
 
-        bitboard sq_bb = bitboard_square(sq);
-        bitboard edges = ((bitboard_rank(RANK_1) | bitboard_rank(RANK_8)) & ~bitboard_rank(square_rank(sq)))
-                       | ((bitboard_file(FILE_A) | bitboard_file(FILE_H)) & ~bitboard_file(square_file(sq)));
+        bitboard sq_bb = square_mask(sq);
+        bitboard edges = ((rank_mask(rank_1) | rank_mask(rank_8)) & ~rank_mask(square_rank(sq)))
+                       | ((file_mask(file_a) | file_mask(file_h)) & ~file_mask(square_file(sq)));
 
-        magics[sq].mask = bitboard_ray(sq_bb, directions[0], BITBOARD_EMPTY)
-                        | bitboard_ray(sq_bb, directions[1], BITBOARD_EMPTY)
-                        | bitboard_ray(sq_bb, directions[2], BITBOARD_EMPTY)
-                        | bitboard_ray(sq_bb, directions[3], BITBOARD_EMPTY);
+        magics[sq].mask = bitboard_ray(sq_bb, directions[0], empty_mask)
+                        | bitboard_ray(sq_bb, directions[1], empty_mask)
+                        | bitboard_ray(sq_bb, directions[2], empty_mask)
+                        | bitboard_ray(sq_bb, directions[3], empty_mask);
         magics[sq].mask &= ~edges;
 
-        magics[sq].shift = SQUARES - bitboard_count(magics[sq].mask);
+        magics[sq].shift = squares - bitboard_count(magics[sq].mask);
 
         // attack table of this square continues from the end of the last table
-        magics[sq].attacks = sq == SQUARE_A1 ? attacks : magics[sq - 1].attacks + size;
+        magics[sq].attacks = sq == square_a1 ? attacks : magics[sq - 1].attacks + size;
 
         bitboard bb = 0;
         size = 0;
@@ -284,12 +280,12 @@ void bitboard_init(random* r)
 
 bitboard bitboard_pawn_east_attacks(bitboard bb, side s)
 {
-    return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + DIRECTION_E));
+    return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + direction_e));
 }
 
 bitboard bitboard_pawn_west_attacks(bitboard bb, side s)
 {
-    return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + DIRECTION_W));
+    return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + direction_w));
 }
 
 bitboard bitboard_rook_attacks(square sq, bitboard occupied)

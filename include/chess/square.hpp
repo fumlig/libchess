@@ -2,7 +2,8 @@
 #define CHESS_SQUARE_HPP
 
 
-#include <stdio.h>
+#include <iostream>
+#include <string>
 
 #include "piece.hpp"
 
@@ -117,14 +118,6 @@ enum square
     SQUARE_H8 = 63
 };
 
-file square_file(square sq);
-rank square_rank(square sq);
-square square_from_file_rank(file f, rank r);
-square square_from_string(const char* string);
-void square_to_string(square sq, char* string);
-void square_print(square sq);
-
-
 
 file file_from_char(char c)
 {
@@ -167,34 +160,12 @@ square square_from_file_rank(file f, rank r)
     return static_cast<square>(r*8 + f);
 }
 
-square square_from_string(const char* string)
+square square_from_string(std::string_view string)
 {
     file f = file_from_char(string[0]);
     rank r = rank_from_char(string[1]);
     return square_from_file_rank(f, r);
 }
-
-void square_to_string(square sq, char* string)
-{
-    if(sq == SQUARE_NONE)
-    {
-        string[0] = '-';
-        string[1] = '\0';
-        return;
-    }
-
-    string[0] = file_to_char(square_file(sq));
-    string[1] = rank_to_char(square_rank(sq));
-    string[2] = '\0';
-}
-
-void square_print(square sq)
-{
-    char string[3];
-    square_to_string(sq, string);
-    printf("%s", string);
-}
-
 
 }
 

@@ -16,13 +16,6 @@ enum side
     SIDE_BLACK  = 1,
 };
 
-side side_opposite(side s);
-
-side side_from_char(char c);
-
-char side_to_char(side s);
-
-
 
 side side_opposite(side s)
 {

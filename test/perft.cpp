@@ -1,13 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <time.h>
+#include <iostream>
+#include <ctime>
 
 #include <chess/move.hpp>
 #include <chess/random.hpp>
 #include <chess/position.hpp>
 #include <chess/bitboard.hpp>
+
+
+// todo: divide
 
 
 using namespace chess;
@@ -19,18 +19,18 @@ using namespace chess;
 
 static struct perft_entry
 {
-    uint64_t key;
+    std::size_t key;
     unsigned long long nodes;
     int depth;
 } perft_table[PERFT_TABLE_SIZE];
 static unsigned int perft_hits = 0;
 
 
-unsigned long long perft(int depth, position* p, bool divide)
+unsigned long long perft(int depth, position* p)
 {
     if(depth == 0) return 1;
 
-    uint64_t hash = position_hash(p);
+    std::size_t hash = position_hash(p);
     perft_entry* entry = &perft_table[hash & PERFT_TABLE_MASK];
     if(hash == entry->key && depth == entry->depth)
     {
@@ -47,14 +47,8 @@ unsigned long long perft(int depth, position* p, bool divide)
     for(int i = 0; i < m; i++)
     {
         position_move(p, &moves[i], &undo);
-        unsigned long long move_nodes = perft(depth - 1, p, false);
+        unsigned long long move_nodes = perft(depth - 1, p);
         position_undo(p, &moves[i], &undo);
-
-        if(divide)
-        {
-            move_print_uci(&moves[i]);
-            printf(": %llu\n", move_nodes);
-        }
 
         nodes += move_nodes;
     }
@@ -69,8 +63,8 @@ unsigned long long perft(int depth, position* p, bool divide)
 
 struct perft_result
 {
-    const char* name;
-    const char* fen;
+    std::string name;
+    std::string fen;
     int depth;
     unsigned long long nodes[11];
 };
@@ -90,24 +84,21 @@ static perft_result perfts[] =
 
 void perft_help(int argc, char* argv[])
 {
-    printf
-    (
-        "usage: %s {perft,divide} {<name>,<fen>} <depth>\n"
-        "\n"
-        "names:\n",
-        argv[0]
-    );
+    std::cout
+        << "usage: " << argv[0] << " {<name>,<fen>} <depth>" << std::endl
+        << std::endl
+        << "names:" << std::endl;
 
     int n = sizeof(perfts)/sizeof(perft_result);
     for(int i = 0; i < n; i++)
     {
-        printf("%s, depth %d\n", perfts[i].name, perfts[i].depth);
+        std::cout << perfts[i].name << ", depth " << perfts[i].depth << std::endl;
     }
 }
 
 int main(int argc, char* argv[])
 {   
-    if(argc < 4)
+    if(argc < 3)
     {
         perft_help(argc, argv);
         return 1;
@@ -119,9 +110,8 @@ int main(int argc, char* argv[])
     board_init(&r);
     position_init(&r);
 
-    bool divide = strcmp(argv[1], "divide") == 0;
-    const char* fen = argv[2];
-    int depth = atoi(argv[3]);
+    std::string fen = argv[1];
+    int depth = atoi(argv[2]);
 
     int result_depth = 0;
     unsigned long long* result_nodes = NULL;
@@ -129,7 +119,7 @@ int main(int argc, char* argv[])
     int n = sizeof(perfts)/sizeof(perft_result);
     for(int i = 0; i < n; i++)
     {
-        if(strcmp(fen, perfts[i].name) == 0)
+        if(fen == perfts[i].name)
         {
             fen = perfts[i].fen;
             result_depth = perfts[i].depth;
@@ -144,15 +134,15 @@ int main(int argc, char* argv[])
     timespec begin, end;
     clock_gettime(CLOCK_MONOTONIC, &begin);
     
-    unsigned long long nodes = perft(depth, &p, divide);
+    unsigned long long nodes = perft(depth, &p);
     
     clock_gettime(CLOCK_MONOTONIC, &end); 
     unsigned long long ns = (end.tv_sec - begin.tv_sec) * 1e9 + (end.tv_nsec - begin.tv_nsec);
 
     double nps = (1e9*nodes)/ns;
-    printf("total: %llu\n", nodes);
-    if(depth <= result_depth && result_nodes != NULL) printf("expected: %llu\n", result_nodes[depth]);
-    printf("time: %lluns (%f nps, %d hits)\n", ns, nps, perft_hits);
+    std::cout << "total: " << nodes << std::endl;
+    if(depth <= result_depth && result_nodes != NULL) std::cout << "expected: " << result_nodes[depth] << std::endl;
+    std::cout << "time: " << ns << " ns (" << nps << " nps, " << perft_hits << " hits)" << std::endl;
 
     return 0;
 }

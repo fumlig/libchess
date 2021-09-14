@@ -2,10 +2,9 @@
 #define CHESS_BOARD_HPP
 
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <uchar.h>
+#include <iostream>
+#include <cstdint>
+#include <cstddef>
 
 #include "random.hpp"
 #include "square.hpp"
@@ -18,7 +17,7 @@ namespace chess
 {
 
 
-typedef uint64_t bitboard;
+using bitboard = std::uint64_t;
 struct move;
 
 
@@ -26,39 +25,20 @@ struct move;
 void board_init(random* r);
 
 
-struct board
+class board
 {
+public:
     side sides[SQUARES];
     piece pieces[SQUARES];
 
     bitboard side_bb[SIDES];
     bitboard piece_bb[PIECES];
 
-    uint64_t hash;
+    std::size_t hash;
 };
 
 
-void board_clear(struct board* b);
-
-piece board_get(const board* b, square sq, side* s);
-void board_set(board* b, square sq, side s, piece p);
-
-
-bitboard board_empty(const board* b);
-bitboard board_occupied(const board* b);
-bitboard board_side(const board* b, side s);
-bitboard board_piece(const board* b, piece p);
-bitboard board_side_piece(const board* b, side s, piece p);
-bitboard board_attacks(const board* b, side s);
-
-
-uint64_t board_hash(const board* b);
-void board_copy(const board* src, board* dst);
-void board_print(const board* b, bool figurine, bool coordinates);
-
-
-
-static uint64_t board_hash_keys[SQUARES][SIDES][PIECES];
+static std::size_t board_hash_keys[SQUARES][SIDES][PIECES];
 
 
 void board_init(random* r)
@@ -209,7 +189,7 @@ bitboard board_attacks(const board* b, side s)
 }
 
 
-uint64_t board_hash(const board* b)
+std::size_t board_hash(const board* b)
 {
     return b->hash;
 }
@@ -235,36 +215,6 @@ void board_copy(const board* src, board* dst)
     dst->piece_bb[PIECE_KING]   = src->piece_bb[PIECE_KING];
 
     dst->hash = src->hash;
-}
-
-void board_print(const board* b, bool figurine, bool coordinates)
-{
-    for(int r = RANK_8; r >= RANK_1; r--)
-    {
-        for(int f = FILE_A; f <= FILE_H; f++)
-        {
-            square sq = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
-            side s;
-            piece p = board_get(b, sq, &s);
-
-            if(figurine) printf("%s", piece_to_fan(p, s));
-            else printf("%c", piece_to_san(p, s));
-        }
-        if(coordinates)
-        {
-            putchar(' ');
-            putchar(rank_to_char(static_cast<rank>(r)));
-        }
-        putchar('\n');
-    }
-    if(coordinates)
-    {
-        for(int f = FILE_A; f <= FILE_H; f++)
-        {
-            putchar(file_to_char(static_cast<file>(f)));
-        }
-        putchar('\n');
-    }
 }
 
 

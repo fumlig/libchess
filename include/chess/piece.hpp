@@ -2,8 +2,6 @@
 #define CHESS_PIECE_HPP
 
 
-#include <stdlib.h>
-
 #include "side.hpp"
 
 
@@ -60,24 +58,6 @@ char piece_to_san(piece p, side s)
 
     static const char san_white[] = {'P', 'R', 'N', 'B', 'Q', 'K'};
     static const char san_black[] = {'p', 'r', 'n', 'b', 'q', 'k'};
-    
-    switch(s)
-    {
-    case SIDE_WHITE:
-    case SIDE_NONE:
-    default:
-        return san_white[p];
-    case SIDE_BLACK:
-        return san_black[p];
-    }
-}
-
-const char* piece_to_fan(piece p, side s)
-{
-    if(p == PIECE_NONE) return ".";
-
-    static const char* san_white[] = {"♟", "♜", "♞", "♝", "♛", "♚"};
-    static const char* san_black[] = {"♙", "♖", "♘", "♗", "♕", "♔"};
     
     switch(s)
     {

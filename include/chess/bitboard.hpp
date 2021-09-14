@@ -2,9 +2,9 @@
 #define CHESS_BITBOARD_HPP
 
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
+#include <iostream>
+#include <bit>
+#include <cstdint>
 
 #include "piece.hpp"
 #include "square.hpp"
@@ -16,7 +16,7 @@ namespace chess
 {
 
 
-typedef uint64_t bitboard;
+using bitboard = std::uint64_t;
 
 
 #define BITBOARD_EMPTY  (bitboard)0
@@ -26,46 +26,119 @@ typedef uint64_t bitboard;
 #define BITBOARD_RANK_1 (bitboard)0xFF
 
 
-void bitboard_init(random* r);
 
 
-//
-// operations
-//
+bitboard bitboard_square(square sq)
+{
+    return (bitboard)1 << sq;
+}
 
-bool bitboard_get(bitboard bb, square sq);
-bitboard bitboard_set(bitboard bb, square sq);
-bitboard bitboard_toggle(bitboard bb, square sq);
-bitboard bitboard_reset(bitboard bb, square sq);
+bitboard bitboard_file(file f)
+{
+    return (bitboard)BITBOARD_FILE_A << f;
+}
 
-bitboard bitboard_square(square sq);
-bitboard bitboard_file(file f);
-bitboard bitboard_rank(rank r);
-
-bitboard bitboard_shift(bitboard bb, direction d);
-bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied);
-
-square bitboard_lsb(bitboard bb);
-square bitboard_msb(bitboard bb);
-int bitboard_count(bitboard bb);
+bitboard bitboard_rank(rank r)
+{
+    return (bitboard)BITBOARD_RANK_1 << (r*8);
+}
 
 
-//
-// utility
-//
+bool bitboard_get(bitboard bb, square sq)
+{
+    return bb & bitboard_square(sq);
+}
 
-void bitboard_print(bitboard bb);
+bitboard bitboard_set(bitboard bb, square sq)
+{
+    return bb | bitboard_square(sq);
+}
+
+bitboard bitboard_toggle(bitboard bb, square sq)
+{
+    return bb ^ bitboard_square(sq);
+}
+
+bitboard bitboard_reset(bitboard bb, square sq)
+{
+    return bb & ~bitboard_square(sq);
+}
 
 
-//
-// moves
-//
+bitboard bitboard_shift(bitboard bb, direction d)
+{
+    if(d > 0)
+    {
+        bb <<= d;
+    }
+    else
+    {
+        bb >>= -d;
+    }
 
-bitboard bitboard_rook_attacks(square sq, bitboard occupied);
-bitboard bitboard_knight_attacks(enum square sq);
-bitboard bitboard_bishop_attacks(enum square sq, bitboard occupied);
-bitboard bitboard_queen_attacks(enum square sq, bitboard occupied);
-bitboard bitboard_king_attacks(enum square sq);
+    switch(d)
+    {
+    case DIRECTION_E:
+    case DIRECTION_NE:
+    case DIRECTION_SE:
+    case DIRECTION_NNE:
+    case DIRECTION_SSE:
+        bb &= ~bitboard_file(FILE_A);
+        break;
+    case DIRECTION_W:
+    case DIRECTION_NW:
+    case DIRECTION_SW:
+    case DIRECTION_NNW:
+    case DIRECTION_SSW:
+        bb &= ~bitboard_file(FILE_H);
+        break;
+    case DIRECTION_ENE:
+    case DIRECTION_ESE:
+        bb &= ~(bitboard_file(FILE_A) | bitboard_file(FILE_B));
+        break;
+    case DIRECTION_WNW:
+    case DIRECTION_WSW:
+        bb &= ~(bitboard_file(FILE_G) | bitboard_file(FILE_H));
+        break;
+    case DIRECTION_N:
+    case DIRECTION_S:
+    case DIRECTION_NONE:
+    default:
+        break;
+    }
+    return bb;
+}
+
+bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
+{
+    bitboard shift = bb;
+    bitboard ray = 0;
+    while(shift != 0 && !(shift & occupied))
+    {
+        shift = bitboard_shift(shift, d);
+        ray |= shift;
+    }
+    return ray;
+}
+
+
+square bitboard_lsb(bitboard bb)
+{
+    return static_cast<square>(std::countr_zero(bb));
+}
+
+
+square bitboard_msb(bitboard bb)
+{
+    return static_cast<square>(SQUARE_H8 - std::countl_zero(bb));
+}
+
+int bitboard_count(bitboard bb)
+{
+    return std::popcount(bb);
+}
+
+
 
 
 struct magic
@@ -219,158 +292,34 @@ bitboard bitboard_pawn_west_attacks(bitboard bb, side s)
     return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + DIRECTION_W));
 }
 
-bitboard bitboard_rook_attacks(enum square sq, bitboard occupied)
+bitboard bitboard_rook_attacks(square sq, bitboard occupied)
 {
     unsigned index = magic_index(&rook_magics[sq], occupied);
     return rook_magics[sq].attacks[index];
 }
 
-bitboard bitboard_knight_attacks(enum square sq)
+bitboard bitboard_knight_attacks(square sq)
 {
     return knight_attacks[sq];
 }
 
-bitboard bitboard_bishop_attacks(enum square sq, bitboard occupied)
+bitboard bitboard_bishop_attacks(square sq, bitboard occupied)
 {
     unsigned index = magic_index(&bishop_magics[sq], occupied);
     return bishop_magics[sq].attacks[index];
 }
 
-bitboard bitboard_queen_attacks(enum square sq, bitboard occupied)
+bitboard bitboard_queen_attacks(square sq, bitboard occupied)
 {
     return bitboard_rook_attacks(sq, occupied) | bitboard_bishop_attacks(sq, occupied);
 }
 
 
-bitboard bitboard_king_attacks(enum square sq)
+bitboard bitboard_king_attacks(square sq)
 {
     return king_attacks[sq];
 }
 
-
-bool bitboard_get(bitboard bb, square sq)
-{
-    return bb & bitboard_square(sq);
-}
-
-bitboard bitboard_set(bitboard bb, square sq)
-{
-    return bb | bitboard_square(sq);
-}
-
-bitboard bitboard_toggle(bitboard bb, square sq)
-{
-    return bb ^ bitboard_square(sq);
-}
-
-bitboard bitboard_reset(bitboard bb, square sq)
-{
-    return bb & ~bitboard_square(sq);
-}
-
-
-bitboard bitboard_square(enum square sq)
-{
-    return (bitboard)1 << sq;
-}
-
-bitboard bitboard_file(enum file f)
-{
-    return (bitboard)BITBOARD_FILE_A << f;
-}
-
-bitboard bitboard_rank(enum rank r)
-{
-    return (bitboard)BITBOARD_RANK_1 << (r*8);
-}
-
-
-bitboard bitboard_shift(bitboard bb, direction d)
-{
-    if(d > 0)
-    {
-        bb <<= d;
-    }
-    else
-    {
-        bb >>= -d;
-    }
-
-    switch(d)
-    {
-    case DIRECTION_E:
-    case DIRECTION_NE:
-    case DIRECTION_SE:
-    case DIRECTION_NNE:
-    case DIRECTION_SSE:
-        bb &= ~bitboard_file(FILE_A);
-        break;
-    case DIRECTION_W:
-    case DIRECTION_NW:
-    case DIRECTION_SW:
-    case DIRECTION_NNW:
-    case DIRECTION_SSW:
-        bb &= ~bitboard_file(FILE_H);
-        break;
-    case DIRECTION_ENE:
-    case DIRECTION_ESE:
-        bb &= ~(bitboard_file(FILE_A) | bitboard_file(FILE_B));
-        break;
-    case DIRECTION_WNW:
-    case DIRECTION_WSW:
-        bb &= ~(bitboard_file(FILE_G) | bitboard_file(FILE_H));
-        break;
-    case DIRECTION_N:
-    case DIRECTION_S:
-    case DIRECTION_NONE:
-    default:
-        break;
-    }
-    return bb;
-}
-
-bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
-{
-    bitboard shift = bb;
-    bitboard ray = 0;
-    while(shift != 0 && !(shift & occupied))
-    {
-        shift = bitboard_shift(shift, d);
-        ray |= shift;
-    }
-    return ray;
-}
-
-
-enum square bitboard_lsb(bitboard bb)
-{
-    return static_cast<square>(__builtin_ctzll(bb));
-}
-
-
-enum square bitboard_msb(bitboard bb)
-{
-    return static_cast<square>(SQUARE_H8 - __builtin_clzll(bb));
-}
-
-int bitboard_count(bitboard bb)
-{
-    return __builtin_popcountll(bb);
-}
-
-
-void bitboard_print(bitboard bb)
-{
-    for(int r = RANK_8; r >= RANK_1; r--)
-    {
-        for(int f = FILE_A; f <= FILE_H; f++)
-        {
-            square s = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
-            putchar(bitboard_get(bb, s) ? '1' : '.');
-        }
-        putchar('\n');
-    }
-}
 
 
 }

@@ -2,8 +2,6 @@
 #define CHESS_DIRECTION_HPP
 
 
-#include <stdio.h>
-
 #include "board.hpp"
 
 
@@ -34,12 +32,6 @@ enum direction
     DIRECTION_NNW   = +15
 };
 
-direction direction_opposite(direction d);
-direction direction_forward(side s);
-
-void direction_print(direction d);
-
-
 direction direction_opposite(direction d)
 {
     return static_cast<direction>((d + 8) % 16);
@@ -56,31 +48,6 @@ direction direction_forward(side s)
     case SIDE_NONE:
     default:
         return DIRECTION_NONE;
-    }
-}
-
-
-void direction_print(direction d)
-{
-    switch(d)
-    {
-    case DIRECTION_N:   printf("n");    break;
-    case DIRECTION_NNE: printf("nne");  break;
-    case DIRECTION_NE:  printf("ne");   break;
-    case DIRECTION_ENE: printf("ene");  break;
-    case DIRECTION_E:   printf("e");    break;
-    case DIRECTION_ESE: printf("ese");  break;
-    case DIRECTION_SE:  printf("se");   break;
-    case DIRECTION_SSE: printf("sse");  break;
-    case DIRECTION_S:   printf("s");    break;
-    case DIRECTION_SSW: printf("ssw");  break;
-    case DIRECTION_SW:  printf("sw");   break;
-    case DIRECTION_WSW: printf("wsw");  break;
-    case DIRECTION_W:   printf("w");    break;
-    case DIRECTION_WNW: printf("wnw");  break;
-    case DIRECTION_NW:  printf("nw");   break;
-    case DIRECTION_NNW: printf("nnw");  break;
-    default: break;
     }
 }
 

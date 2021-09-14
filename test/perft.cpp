@@ -4,10 +4,13 @@
 #include <string.h>
 #include <time.h>
 
+#include <chess/move.hpp>
 #include <chess/random.hpp>
 #include <chess/position.hpp>
-#include <chess/move.hpp>
 #include <chess/bitboard.hpp>
+
+
+using namespace chess;
 
 
 #define PERFT_TABLE_SIZE (1 << 24)
@@ -23,7 +26,7 @@ static struct perft_entry
 static unsigned int perft_hits = 0;
 
 
-unsigned long long perft(int depth, struct position* p, bool divide)
+unsigned long long perft(int depth, position* p, bool divide)
 {
     if(depth == 0) return 1;
 
@@ -37,8 +40,8 @@ unsigned long long perft(int depth, struct position* p, bool divide)
 
     unsigned long long nodes = 0;
 
-    struct move moves[POSITION_MOVES_SIZE];
-    struct undo undo;
+    move moves[POSITION_MOVES_SIZE];
+    undo undo;
     int m = position_moves(p, moves);
 
     for(int i = 0; i < m; i++)

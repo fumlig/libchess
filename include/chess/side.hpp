@@ -2,6 +2,10 @@
 #define SIDE_H
 
 
+namespace chess
+{
+
+
 #define SIDES   2
 
 
@@ -52,6 +56,9 @@ char side_to_char(enum side s)
     default:
         return '-';
     }
+}
+
+
 }
 
 

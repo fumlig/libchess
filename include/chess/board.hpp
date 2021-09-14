@@ -14,6 +14,9 @@
 #include "bitboard.hpp"
 
 
+namespace chess
+{
+
 
 typedef uint64_t bitboard;
 struct move;
@@ -264,6 +267,8 @@ void board_print(const struct board* b, bool figurine, bool coordinates)
     }
 }
 
+
+}
 
 
 #endif

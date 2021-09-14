@@ -6,6 +6,10 @@
 #include <stdio.h>
 
 
+namespace chess
+{
+
+
 // pseudorandom number generator
 struct random
 {
@@ -38,6 +42,9 @@ uint64_t random_generate(struct random* r)
 uint64_t random_sparse(struct random* r)
 {
     return random_generate(r) & random_generate(r) & random_generate(r);
+}
+
+
 }
 
 

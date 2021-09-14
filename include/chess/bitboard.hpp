@@ -6,11 +6,14 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "square.hpp"
 #include "piece.hpp"
+#include "square.hpp"
 #include "direction.hpp"
 #include "random.hpp"
 
+
+namespace chess
+{
 
 
 typedef uint64_t bitboard;
@@ -370,6 +373,7 @@ void bitboard_print(bitboard bb)
 }
 
 
+}
 
 
 #endif

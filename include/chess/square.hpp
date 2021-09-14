@@ -7,6 +7,10 @@
 #include "piece.hpp"
 
 
+namespace chess
+{
+
+
 #define SQUARES 64
 #define RANKS   8
 #define FILES   8
@@ -191,6 +195,8 @@ void square_print(enum square sq)
     printf("%s", string);
 }
 
+
+}
 
 
 #endif

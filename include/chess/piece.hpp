@@ -2,12 +2,16 @@
 #define PIECE_H
 
 
-#define PIECES  6
-
-
 #include <stdlib.h>
 
 #include "side.hpp"
+
+
+namespace chess
+{
+
+
+#define PIECES  6
 
 
 enum piece
@@ -21,14 +25,8 @@ enum piece
     PIECE_KING      = 5,
 };
 
-enum piece piece_from_san(char san, enum side* s);
 
-char piece_to_san(enum piece p, enum side s);
-
-const char* piece_to_fan(enum piece p, enum side s);
-
-
-enum piece piece_from_san(char san, enum side* s)
+enum piece piece_from_san(char san, side* s)
 {
     if(s != NULL) *s = san < 'a' ? SIDE_WHITE : SIDE_BLACK;
     switch(san)
@@ -92,6 +90,8 @@ const char* piece_to_fan(enum piece p, enum side s)
     }
 }
 
+
+}
 
 
 #endif

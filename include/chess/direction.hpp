@@ -2,10 +2,13 @@
 #define DIRECTION_H
 
 
-
 #include <stdio.h>
 
 #include "board.hpp"
+
+
+namespace chess
+{
 
 
 #define DIRECTIONS 16
@@ -81,6 +84,8 @@ void direction_print(enum direction d)
     }
 }
 
+
+}
 
 
 #endif

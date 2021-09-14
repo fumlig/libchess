@@ -15,6 +15,9 @@
 #include "board.hpp"
 
 
+namespace chess
+{
+
 
 #define POSITION_FEN_START  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define POSITION_FEN_EMPTY  "8/8/8/8/8/8/8/8 w - - 0 1"
@@ -590,6 +593,8 @@ void position_print(const struct position* p)
     printf("fullmove number: %d\n", p->fullmove_number);
 }
 
+
+}
 
 
 #endif

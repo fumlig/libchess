@@ -11,6 +11,10 @@
 #include "bitboard.hpp"
 
 
+namespace chess
+{
+
+
 #define MOVE_UCI_LENGTH 6 // "d2d4", "a7a8q"
 
 
@@ -164,6 +168,8 @@ void move_print_uci(const struct move* m)
     if(m->promote != PIECE_NONE) putchar(piece_to_san(m->promote, SIDE_BLACK)); // lowercase
 }
 
+
+}
 
 
 #endif

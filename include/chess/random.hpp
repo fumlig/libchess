@@ -1,5 +1,5 @@
-#ifndef RANDOM_H
-#define RANDOM_H
+#ifndef CHESS_RANDOM_HPP
+#define CHESS_RANDOM_HPP
 
 
 #include <stdint.h>

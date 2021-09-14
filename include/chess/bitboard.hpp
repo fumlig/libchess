@@ -1,5 +1,5 @@
-#ifndef BITBOARD_H
-#define BITBOARD_H
+#ifndef CHESS_BITBOARD_HPP
+#define CHESS_BITBOARD_HPP
 
 
 #include <stdint.h>

@@ -1,5 +1,5 @@
-#ifndef SQUARE_H
-#define SQUARE_H
+#ifndef CHESS_SQUARE_HPP
+#define CHESS_SQUARE_HPP
 
 
 #include <stdio.h>

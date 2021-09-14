@@ -1,5 +1,5 @@
-#ifndef DIRECTION_H
-#define DIRECTION_H
+#ifndef CHESS_DIRECTION_HPP
+#define CHESS_DIRECTION_HPP
 
 
 #include <stdio.h>

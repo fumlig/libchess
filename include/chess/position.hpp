@@ -1,5 +1,5 @@
-#ifndef POSITION_H
-#define POSITION_H
+#ifndef CHESS_POSITION_HPP
+#define CHESS_POSITION_HPP
 
 
 #include <stdint.h>

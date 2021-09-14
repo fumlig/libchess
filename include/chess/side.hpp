@@ -1,5 +1,5 @@
-#ifndef SIDE_H
-#define SIDE_H
+#ifndef CHESS_SIDE_HPP
+#define CHESS_SIDE_HPP
 
 
 namespace chess

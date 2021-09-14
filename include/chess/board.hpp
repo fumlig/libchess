@@ -1,5 +1,5 @@
-#ifndef BOARD_H
-#define BOARD_H
+#ifndef CHESS_BOARD_HPP
+#define CHESS_BOARD_HPP
 
 
 #include <stdint.h>

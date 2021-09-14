@@ -1,5 +1,5 @@
-#ifndef PIECE_H
-#define PIECE_H
+#ifndef CHESS_PIECE_HPP
+#define CHESS_PIECE_HPP
 
 
 #include <stdlib.h>

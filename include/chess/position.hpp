@@ -61,7 +61,8 @@ public:
     queenside_castle{true, true},
     en_passant{square_none},
     halfmove_clock{0},
-    fullmove_number{1}
+    fullmove_number{1},
+    zobrist_hash{0}
     {}
 
     position
@@ -83,14 +84,14 @@ public:
     en_passant{en_passant},
     halfmove_clock{halfmove_clock},
     fullmove_number{fullmove_number},
-    hash{0}
+    zobrist_hash{0}
     {
-        if(turn == side_black)              hash ^= side_hash;
-        if(kingside_castle[side_white])     hash ^= kingside_castle_hash[side_white];
-        if(queenside_castle[side_white])    hash ^= queenside_castle_hash[side_white];
-        if(kingside_castle[side_black])     hash ^= kingside_castle_hash[side_black];
-        if(queenside_castle[side_black])    hash ^= queenside_castle_hash[side_black];
-        if(en_passant != square_none)       hash ^= en_passant_hash[square_file(en_passant)];
+        if(turn == side_black)              zobrist_hash ^= side_hash;
+        if(kingside_castle[side_white])     zobrist_hash ^= kingside_castle_hash[side_white];
+        if(queenside_castle[side_white])    zobrist_hash ^= queenside_castle_hash[side_white];
+        if(kingside_castle[side_black])     zobrist_hash ^= kingside_castle_hash[side_black];
+        if(queenside_castle[side_black])    zobrist_hash ^= queenside_castle_hash[side_black];
+        if(en_passant != square_none)       zobrist_hash ^= en_passant_hash[square_file(en_passant)];
     }
 
     board pieces;
@@ -100,7 +101,7 @@ public:
     square en_passant;
     int halfmove_clock;
     int fullmove_number;
-    std::size_t hash;
+    std::size_t zobrist_hash;
 };
 
 
@@ -213,7 +214,9 @@ void position_move(position *p, const move* m, undo* u)
 {
     if(u != NULL)
     {
-        u->capture = board_get(&p->pieces, m->to, NULL);
+        auto [_, capture] = p->pieces.get(m->to);
+
+        u->capture = capture;
         u->en_passant = p->en_passant;
         u->kingside_castle[side_white] = p->kingside_castle[side_white];
         u->kingside_castle[side_black] = p->kingside_castle[side_black];
@@ -222,16 +225,16 @@ void position_move(position *p, const move* m, undo* u)
     }
 
     board* b = &p->pieces;
-    side side;
-    piece piece = board_get(b, m->from, &side);
+    auto [side, piece] = b->get(m->from);
     square ep = p->en_passant;
 
-    board_set(b, m->from, side_none, piece_none);
-    if(m->promote != piece_none) board_set(b, m->to, side, m->promote);
-    else board_set(b, m->to, side, piece);
+    b->set(m->from, side_none, piece_none);
+
+    if(m->promote != piece_none) b->set(m->to, side, m->promote);
+    else b->set(m->to, side, piece);
 
     p->en_passant = square_none;
-    if(ep != square_none) p->hash ^= en_passant_hash[square_file(ep)];
+    if(ep != square_none) p->zobrist_hash ^= en_passant_hash[square_file(ep)];
 
     if(piece == piece_pawn)
     {
@@ -239,13 +242,13 @@ void position_move(position *p, const move* m, undo* u)
         {
             // double push
             p->en_passant = square_from_file_rank(square_file(m->from), rank_side(rank_3, side));
-            p->hash ^= en_passant_hash[square_file(p->en_passant)];
+            p->zobrist_hash ^= en_passant_hash[square_file(p->en_passant)];
         }
         else if(m->to == ep)
         {
             // en passant capture
             square ep_capture = square_from_file_rank(square_file(ep), rank_side(rank_5, side));
-            board_set(b, ep_capture, side_none, piece_none);
+            b->set(ep_capture, side_none, piece_none);
         }
     }
     else if(piece == piece_king)
@@ -253,12 +256,12 @@ void position_move(position *p, const move* m, undo* u)
         if(p->kingside_castle[side])
         {
             p->kingside_castle[side] = false;
-            p->hash ^= kingside_castle_hash[side];
+            p->zobrist_hash ^= kingside_castle_hash[side];
         }
         if(p->queenside_castle[side])
         {
             p->queenside_castle[side] = false;
-            p->hash ^= queenside_castle_hash[side];
+            p->zobrist_hash ^= queenside_castle_hash[side];
         }
         
         rank rank_first = rank_side(rank_1, side);
@@ -267,13 +270,13 @@ void position_move(position *p, const move* m, undo* u)
         {
             if(m->to == square_from_file_rank(file_g, rank_first))
             {
-                board_set(b, square_from_file_rank(file_h, rank_first), side_none, piece_none);
-                board_set(b, square_from_file_rank(file_f, rank_first), side, piece_rook);
+                b->set(square_from_file_rank(file_h, rank_first), side_none, piece_none);
+                b->set(square_from_file_rank(file_f, rank_first), side, piece_rook);
             }
             else if(m->to == square_from_file_rank(file_c, rank_side(rank_1, side)))
             {
-                board_set(b, square_from_file_rank(file_a, rank_first), side_none, piece_none);
-                board_set(b, square_from_file_rank(file_d, rank_first), side, piece_rook);
+                b->set(square_from_file_rank(file_a, rank_first), side_none, piece_none);
+                b->set(square_from_file_rank(file_d, rank_first), side, piece_rook);
             }
         }
     }
@@ -284,64 +287,63 @@ void position_move(position *p, const move* m, undo* u)
     if(p->queenside_castle[side_white] && (m->from == square_a1 || m->to == square_a1))
     {
         p->queenside_castle[side_white] = false;
-        p->hash ^= queenside_castle_hash[side_white];
+        p->zobrist_hash ^= queenside_castle_hash[side_white];
     }
     if(p->kingside_castle[side_white] && (m->from == square_h1 || m->to == square_h1))
     {
         p->kingside_castle[side_white] = false;
-        p->hash ^= kingside_castle_hash[side_white];
+        p->zobrist_hash ^= kingside_castle_hash[side_white];
     }
     if(p->queenside_castle[side_black] && (m->from == square_a8 || m->to == square_a8))
     {
         p->queenside_castle[side_black] = false;
-        p->hash ^= queenside_castle_hash[side_black];
+        p->zobrist_hash ^= queenside_castle_hash[side_black];
     }
     if(p->kingside_castle[side_black] && (m->from == square_h8 || m->to == square_h8))
     {
         p->kingside_castle[side_black] = false;
-        p->hash ^= kingside_castle_hash[side_black];
+        p->zobrist_hash ^= kingside_castle_hash[side_black];
     }
 
     p->halfmove_clock++; // todo: only if silent
     p->fullmove_number += p->turn;
     p->turn = side_opposite(p->turn);
-    p->hash ^= side_hash;
+    p->zobrist_hash ^= side_hash;
 }
 
 void position_undo(position *p, const move* m, const undo* u)
 {
     board* b = &p->pieces;
-    side side;
-    piece piece = board_get(b, m->to, &side);
+    auto [side, piece] = b->get(m->to);
 
-    board_set(b, m->from, side, piece);
-    board_set(b, m->to, side_none, piece_none);
-    if(u->capture != piece_none) board_set(b, m->to, side_opposite(side), u->capture);
-    if(m->promote != piece_none) board_set(b, m->from, side, piece_pawn);
+    b->set(m->from, side, piece);
+    b->set(m->to, side_none, piece_none);
+    if(u->capture != piece_none) b->set(m->to, side_opposite(side), u->capture);
+    if(m->promote != piece_none) b->set(m->from, side, piece_pawn);
 
-    if(p->en_passant != square_none) p->hash ^= en_passant_hash[square_file(p->en_passant)];
-    if(u->en_passant != square_none) p->hash ^= en_passant_hash[square_file(u->en_passant)];
+    if(p->en_passant != square_none) p->zobrist_hash ^= en_passant_hash[square_file(p->en_passant)];
+    if(u->en_passant != square_none) p->zobrist_hash ^= en_passant_hash[square_file(u->en_passant)];
     p->en_passant = u->en_passant;
 
     if(p->kingside_castle[side_white] != u->kingside_castle[side_white])
     {
         p->kingside_castle[side_white] = u->kingside_castle[side_white];
-        p->hash ^= kingside_castle_hash[side_white];
+        p->zobrist_hash ^= kingside_castle_hash[side_white];
     }
     if(p->kingside_castle[side_black] != u->kingside_castle[side_black])
     {
         p->kingside_castle[side_black] = u->kingside_castle[side_black];
-        p->hash ^= kingside_castle_hash[side_black];
+        p->zobrist_hash ^= kingside_castle_hash[side_black];
     }
     if(p->queenside_castle[side_white] != u->queenside_castle[side_white])
     {
         p->queenside_castle[side_white] = u->queenside_castle[side_white];
-        p->hash ^= queenside_castle_hash[side_white];
+        p->zobrist_hash ^= queenside_castle_hash[side_white];
     }
     if(p->queenside_castle[side_black] != u->queenside_castle[side_black])
     {
         p->queenside_castle[side_black] = u->queenside_castle[side_black];
-        p->hash ^= queenside_castle_hash[side_black];
+        p->zobrist_hash ^= queenside_castle_hash[side_black];
     }
 
     if(piece == piece_pawn)
@@ -349,7 +351,7 @@ void position_undo(position *p, const move* m, const undo* u)
         if(m->to == u->en_passant)
         {
             square ep_capture = square_from_file_rank(square_file(u->en_passant), rank_side(rank_5, side));
-            board_set(b, ep_capture, side_opposite(side), piece_pawn);
+            b->set(ep_capture, side_opposite(side), piece_pawn);
         }
     }
     else if(piece == piece_king)
@@ -360,13 +362,13 @@ void position_undo(position *p, const move* m, const undo* u)
         {
             if(m->to == square_from_file_rank(file_g, rank_first))
             {
-                board_set(b, square_from_file_rank(file_h, rank_first), side, piece_rook);
-                board_set(b, square_from_file_rank(file_f, rank_first), side_none, piece_none);
+                b->set(square_from_file_rank(file_h, rank_first), side, piece_rook);
+                b->set(square_from_file_rank(file_f, rank_first), side_none, piece_none);
             }
             else if(m->to == square_from_file_rank(file_c, rank_side(rank_1, side)))
             {
-                board_set(b, square_from_file_rank(file_a, rank_first), side, piece_rook);
-                board_set(b, square_from_file_rank(file_d, rank_first), side_none, piece_none);
+                b->set(square_from_file_rank(file_a, rank_first), side, piece_rook);
+                b->set(square_from_file_rank(file_d, rank_first), side_none, piece_none);
             }
         }
     }
@@ -374,7 +376,7 @@ void position_undo(position *p, const move* m, const undo* u)
     p->halfmove_clock--; // todo: only if silent
     p->fullmove_number -= side_opposite(p->turn); // decrease if white
     p->turn = side_opposite(p->turn);
-    p->hash ^= side_hash;
+    p->zobrist_hash ^= side_hash;
 }
 
 
@@ -383,19 +385,19 @@ int position_moves(position* p, move* moves)
 {
     const board* b = &p->pieces;
     side player = p->turn, opponent = side_opposite(p->turn);
-    bitboard occupied = board_occupied(b);
+    bitboard occupied = b->occupied_mask();
 
     int m = 0;
     
-    bitboard pawns = board_side_piece(b, player, piece_pawn);
-    bitboard rooks = board_side_piece(b, player, piece_rook);
-    bitboard knights = board_side_piece(b, player, piece_knight);
-    bitboard bishops = board_side_piece(b, player, piece_bishop);
-    bitboard queens = board_side_piece(b, player, piece_queen);
-    bitboard kings = board_side_piece(b, player, piece_king);
+    bitboard pawns = b->side_piece_mask(player, piece_pawn);
+    bitboard rooks = b->side_piece_mask(player, piece_rook);
+    bitboard knights = b->side_piece_mask(player, piece_knight);
+    bitboard bishops = b->side_piece_mask(player, piece_bishop);
+    bitboard queens = b->side_piece_mask(player, piece_queen);
+    bitboard kings = b->side_piece_mask(player, piece_king);
     
-    bitboard attack_mask = ~board_side(b, player);
-    bitboard capture_mask = board_side(b, opponent);
+    bitboard attack_mask = ~b->side_mask(player);
+    bitboard capture_mask = b->side_mask(opponent);
     bitboard ep_mask = 0;
     if(p->en_passant != square_none) ep_mask = square_mask(p->en_passant);
 
@@ -491,7 +493,7 @@ int position_moves(position* p, move* moves)
         path |= bitboard_shift(path, direction_e);
         bitboard between = path & ~kings;
 
-        if(!(between & board_occupied(b)) && !(path & board_attacks(b, opponent)))
+        if(!(between & b->occupied_mask()) && !(path & b->attack_mask(opponent)))
         {
             move_init(&moves[m++], from, to, piece_none);
         }
@@ -505,7 +507,7 @@ int position_moves(position* p, move* moves)
         path |= bitboard_shift(path, direction_w);
         bitboard between = bitboard_shift(path, direction_w);
 
-        if(!(between & board_occupied(b)) && !(path & board_attacks(b, opponent)))
+        if(!(between & b->occupied_mask()) && !(path & b->attack_mask(opponent)))
         {
             move_init(&moves[m++], from, to, piece_none);
         }
@@ -524,7 +526,7 @@ int position_moves(position* p, move* moves)
     {
         undo u;
         position_move(p, &moves[i], &u);
-        if(!(board_attacks(b, opponent) & board_side_piece(b, player, piece_king))) moves[n++] = moves[i];
+        if(!(b->attack_mask(opponent) & b->side_piece_mask(player, piece_king))) moves[n++] = moves[i];
         position_undo(p, &moves[i], &u);
     }
 
@@ -545,7 +547,7 @@ int position_halfmove(position* p)
 
 std::size_t position_hash(const position* p)
 {
-    return p->hash ^ p->pieces.hash;
+    return p->zobrist_hash ^ p->pieces.zobrist_hash;
 }
 
 

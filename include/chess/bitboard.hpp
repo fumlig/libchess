@@ -17,8 +17,8 @@ namespace chess
 using bitboard = std::uint64_t;
 
 
-const bitboard empty_mask = 0ULL;
-const bitboard full_mask = ~0ULL;
+const bitboard bitboard_empty = 0ULL;
+const bitboard bitboard_full = ~0ULL;
 
 
 
@@ -204,10 +204,10 @@ void ray_table_init(bitboard* attacks, magic* magics, direction* directions, ran
         bitboard edges = ((rank_mask(rank_1) | rank_mask(rank_8)) & ~rank_mask(square_rank(sq)))
                        | ((file_mask(file_a) | file_mask(file_h)) & ~file_mask(square_file(sq)));
 
-        magics[sq].mask = bitboard_ray(sq_bb, directions[0], empty_mask)
-                        | bitboard_ray(sq_bb, directions[1], empty_mask)
-                        | bitboard_ray(sq_bb, directions[2], empty_mask)
-                        | bitboard_ray(sq_bb, directions[3], empty_mask);
+        magics[sq].mask = bitboard_ray(sq_bb, directions[0], bitboard_empty)
+                        | bitboard_ray(sq_bb, directions[1], bitboard_empty)
+                        | bitboard_ray(sq_bb, directions[2], bitboard_empty)
+                        | bitboard_ray(sq_bb, directions[3], bitboard_empty);
         magics[sq].mask &= ~edges;
 
         magics[sq].shift = squares - bitboard_count(magics[sq].mask);

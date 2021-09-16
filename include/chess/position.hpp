@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdint>
 #include <array>
+#include <string.h>
 
 #include "types.hpp"
 #include "move.hpp"
@@ -60,7 +61,7 @@ public:
     queenside_castle{true, true},
     en_passant{square_none},
     halfmove_clock{0},
-    fullmove_number{0}
+    fullmove_number{1}
     {}
 
     position
@@ -73,7 +74,7 @@ public:
         bool black_queenside_castle = true,
         square en_passant = square_none,
         int halfmove_clock = 0,
-        int fullmove_number = 0
+        int fullmove_number = 1
     ):
     pieces(pieces),
     turn{turn},
@@ -103,7 +104,109 @@ public:
 };
 
 
+#if 0
+void position_from_fen(struct position* p, const char* fen)
+{
+    char board[8*8+7+1];
+    char turn;
+    char castle[4+1];
+    char en_passant[2+1];
+    int halfmove_clock;
+    int fullmove_number;
 
+    sscanf(fen, "%s %c %s %s %d %d", board, &turn, castle, en_passant, &halfmove_clock, &fullmove_number);
+
+    // board
+    board_clear(&p->pieces);
+    int r = rank_8;
+    int f = file_a;
+
+    for(int i = 0; i < strlen(board); i++)
+    {
+        if(board[i] == '/')
+        {
+            r--;
+            f = file_a;
+            continue;
+        }
+
+        if('1' <= board[i] && board[i] <= '8')
+        {
+            f += board[i] - '0';
+            continue;
+        }
+
+        enum side side;
+        enum piece piece;
+
+        from_san(std::string{board[i]}, side, piece);
+
+        enum square square = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
+
+        board_set(&p->pieces, square, side, piece);
+
+        f++;
+    }
+
+    // turn
+	if(turn == 'w')
+	{
+		p->turn = side_white;
+	}
+	else if(turn == 'b')
+	{
+		p->turn = side_black;
+        if(p->turn == side_black) p->hash ^= side_hash;
+	}
+
+    // castle
+    p->kingside_castle[side_white] = false;
+    p->queenside_castle[side_white] = false;
+    p->kingside_castle[side_black] = false;
+    p->queenside_castle[side_black] = false;
+
+    for(int i = 0; i < strlen(castle); i++)
+    {
+        switch(castle[i])
+        {
+        case 'K':
+            p->kingside_castle[side_white] = true;
+            p->hash ^= kingside_castle_hash[side_white];
+            break;
+        case 'Q':
+            p->queenside_castle[side_white] = true;
+            p->hash ^= queenside_castle_hash[side_white];
+            break;
+        case 'k':
+            p->kingside_castle[side_black] = true;
+            p->hash ^= kingside_castle_hash[side_black];
+            break;
+        case 'q':
+            p->queenside_castle[side_black] = true;
+            p->hash ^= queenside_castle_hash[side_black];
+            break;
+        case '-':
+        default:
+            break;
+        }
+    }
+
+    // en passant
+    if(strcmp(en_passant, "-") == 0)
+    {
+        p->en_passant = square_none;
+    }
+    else
+    {
+        from_san(en_passant, p->en_passant);
+        p->hash ^= en_passant_hash[square_file(p->en_passant)];
+    }
+
+    // move count
+    p->halfmove_clock = halfmove_clock;
+    p->fullmove_number = fullmove_number;
+}
+#endif
 
 
 void position_move(position *p, const move* m, undo* u)

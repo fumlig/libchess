@@ -1,4 +1,4 @@
-#ifndef CHESS_NOtATION_HPP
+#ifndef CHESS_NOTATION_HPP
 #define CHESS_NOTATION_HPP
 
 
@@ -301,6 +301,7 @@ bool from_fen(std::string_view fen, position& p)
             black_queenside_castle = true;
             break;
         case '-':
+			break;
         default:
 			return false;
         }
@@ -332,91 +333,8 @@ bool from_fen(std::string_view fen, position& p)
 	);
 
 	return true;
-
-#if 0
-    // board
-    board_clear(&p->pieces);
-    int r = rank_8;
-    int f = file_a;
-
-    for(char c : pieces)
-    {
-        if(c == '/')
-        {
-            r--;
-            f = file_a;
-            continue;
-        }
-
-        if('1' <= c && c <= '8')
-        {
-            f += c - '0';
-            continue;
-        }
-
-        side side;
-        piece piece = piece_from_san(c, &side);
-        square square = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
-
-        board_set(&p->pieces, square, side, piece);
-
-        f++;
-    }
-
-    // turn
-    p->turn = side_from_char(turn.front());
-    if(p->turn == side_black) p->hash ^= side_hash;
-
-    // castle
-    p->kingside_castle[side_white] = false;
-    p->queenside_castle[side_white] = false;
-    p->kingside_castle[side_black] = false;
-    p->queenside_castle[side_black] = false;
-
-    for(char c : castle)
-    {
-        switch(c)
-        {
-        case 'K':
-            p->kingside_castle[side_white] = true;
-            p->hash ^= kingside_castle_hash[side_white];
-            break;
-        case 'Q':
-            p->queenside_castle[side_white] = true;
-            p->hash ^= queenside_castle_hash[side_white];
-            break;
-        case 'k':
-            p->kingside_castle[side_black] = true;
-            p->hash ^= kingside_castle_hash[side_black];
-            break;
-        case 'q':
-            p->queenside_castle[side_black] = true;
-            p->hash ^= queenside_castle_hash[side_black];
-            break;
-        case '-':
-        default:
-            break;
-        }
-    }
-
-    // en passant
-    if(en_passant == "-")
-    {
-        p->en_passant = square_none;
-    }
-    else
-    {
-        p->en_passant = square_from_string(en_passant);
-        p->hash ^= en_passant_hash[square_file(p->en_passant)];
-    }
-
-    // move count
-    p->halfmove_clock = halfmove_clock;
-    p->fullmove_number = fullmove_number;
-
-#endif
-
 }
+
 
 }
 

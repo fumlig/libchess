@@ -345,7 +345,7 @@ int position_moves(position* p, move* moves)
     // rook moves
     while(rooks)
     {
-        square from = bitboard_lsb(rooks);
+        square from = bitboard_ls1b(rooks);
         rooks = bitboard_reset(rooks, from);
         bitboard attacks = bitboard_rook_attacks(from, occupied) & attack_mask;
         m += move_list_piecewise(from, attacks, piece_none, moves+m);
@@ -354,7 +354,7 @@ int position_moves(position* p, move* moves)
     // knight moves
     while(knights)
     {
-        square from = bitboard_lsb(knights);
+        square from = bitboard_ls1b(knights);
         knights = bitboard_reset(knights, from);
         bitboard attacks = bitboard_knight_attacks(from) & attack_mask;
         m += move_list_piecewise(from, attacks, piece_none, moves+m);
@@ -363,7 +363,7 @@ int position_moves(position* p, move* moves)
     // bishop moves
     while(bishops)
     {
-        square from = bitboard_lsb(bishops);
+        square from = bitboard_ls1b(bishops);
         bishops = bitboard_reset(bishops, from);
         bitboard attacks = bitboard_bishop_attacks(from, occupied) & attack_mask;
         m += move_list_piecewise(from, attacks, piece_none, moves+m);
@@ -372,7 +372,7 @@ int position_moves(position* p, move* moves)
     // queen moves
     while(queens)
     {
-        square from = bitboard_lsb(queens);
+        square from = bitboard_ls1b(queens);
         queens = bitboard_reset(queens, from);
         bitboard attacks = (bitboard_rook_attacks(from, occupied) | bitboard_bishop_attacks(from, occupied)) & attack_mask;
         m += move_list_piecewise(from, attacks, piece_none, moves+m);
@@ -381,7 +381,7 @@ int position_moves(position* p, move* moves)
     // king moves
     if(p->kingside_castle[player])
     {
-        square from = bitboard_lsb(kings);
+        square from = bitboard_ls1b(kings);
         square to = square_from_file_rank(file_g, square_rank(from));
         bitboard path = kings;
         path |= bitboard_shift(kings, direction_e);
@@ -395,7 +395,7 @@ int position_moves(position* p, move* moves)
     }
     if(p->queenside_castle[player])
     {
-        square from = bitboard_lsb(kings);
+        square from = bitboard_ls1b(kings);
         square to = square_from_file_rank(file_c, square_rank(from));
         bitboard path = kings;
         path |= bitboard_shift(path, direction_w);
@@ -409,7 +409,7 @@ int position_moves(position* p, move* moves)
     }
     while(kings)
     {
-        square from = bitboard_lsb(kings);
+        square from = bitboard_ls1b(kings);
         kings = bitboard_reset(kings, from);
         bitboard attacks = bitboard_king_attacks(from) & attack_mask;
         m += move_list_piecewise(from, attacks, piece_none, moves+m);

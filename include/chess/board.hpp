@@ -191,35 +191,35 @@ bitboard board_attacks(const board* b, side s)
 
     while(rooks)
     {
-        square from = bitboard_lsb(rooks);
+        square from = bitboard_ls1b(rooks);
         rooks = bitboard_reset(rooks, from);
         attacks |= bitboard_rook_attacks(from, board_occupied(b));
     }
 
     while(knights)
     {
-        square from = bitboard_lsb(knights);
+        square from = bitboard_ls1b(knights);
         knights = bitboard_reset(knights, from);
         attacks |= bitboard_knight_attacks(from);
     }
 
     while(bishops)
     {
-        square from = bitboard_lsb(bishops);
+        square from = bitboard_ls1b(bishops);
         bishops = bitboard_reset(bishops, from);
         attacks |= bitboard_bishop_attacks(from, board_occupied(b));
     }
 
     while(queens)
     {
-        square from = bitboard_lsb(queens);
+        square from = bitboard_ls1b(queens);
         queens = bitboard_reset(queens, from);
         attacks |= (bitboard_rook_attacks(from, board_occupied(b)) | bitboard_bishop_attacks(from, board_occupied(b)));
     }
 
     while(kings)
     {
-        square from = bitboard_lsb(kings);
+        square from = bitboard_ls1b(kings);
         kings = bitboard_reset(kings, from);
         attacks |= bitboard_king_attacks(from);
     }

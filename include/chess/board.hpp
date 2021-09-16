@@ -191,13 +191,12 @@ public:
         return attacks;
     }
 
-
-
-    std::size_t hash(const board* b) const
+    std::size_t hash() const
     {
         return zobrist_hash;
     }
 
+private:
     std::array<side, squares> square_sides;
     std::array<piece, squares> square_pieces;
 

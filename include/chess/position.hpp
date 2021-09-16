@@ -547,7 +547,7 @@ int position_halfmove(position* p)
 
 std::size_t position_hash(const position* p)
 {
-    return p->zobrist_hash ^ p->pieces.zobrist_hash;
+    return p->zobrist_hash ^ p->pieces.hash();
 }
 
 

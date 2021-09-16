@@ -32,7 +32,7 @@ unsigned long long perft(int depth, position* p)
 {
     if(depth == 0) return 1;
 
-    std::size_t hash = position_hash(p);
+    std::size_t hash = p->hash();
     perft_entry* entry = &perft_table[hash & PERFT_TABLE_MASK];
     if(hash == entry->key && depth == entry->depth)
     {
@@ -42,15 +42,11 @@ unsigned long long perft(int depth, position* p)
 
     unsigned long long nodes = 0;
 
-    move moves[POSITION_MOVES_SIZE];
-    undo undo;
-    int m = position_moves(p, moves);
-
-    for(int i = 0; i < m; i++)
+    for(move& move: p->moves())
     {
-        position_move(p, &moves[i], &undo);
+        undo undo = p->make_move(move);
         unsigned long long move_nodes = perft(depth - 1, p);
-        position_undo(p, &moves[i], &undo);
+        p->undo_move(move, undo);
 
         nodes += move_nodes;
     }
@@ -74,7 +70,7 @@ struct perft_result
 static perft_result perfts[] =
 {
     
-    {.name = "startpos", .fen = POSITION_FEN_START, .depth = 10, .nodes = {1, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860, 84998978956, 2439530234167, 69352859712417}},
+    {.name = "startpos", .fen = std::string(fen_start), .depth = 10, .nodes = {1, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860, 84998978956, 2439530234167, 69352859712417}},
     // positions from Chess Programming Wiki
     {.name = "p2", .fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", .depth = 6, .nodes = {1, 48, 2039, 97862, 4085603, 193690690, 8031647685}},
     {.name = "p3", .fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1", .depth = 8, .nodes = {1, 14, 191, 2812, 43238, 674624, 11030083, 178633661, 3009794393}},

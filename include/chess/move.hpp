@@ -3,6 +3,8 @@
 
 
 #include <iostream>
+#include <array>
+#include <vector>
 
 #include "move.hpp"
 #include "board.hpp"
@@ -28,54 +30,9 @@ struct undo
     // irreversible information of a move
     piece capture;
     square en_passant;
-    bool kingside_castle[sides];
-    bool queenside_castle[sides];
+    std::array<bool, sides> kingside_castle;
+    std::array<bool, sides> queenside_castle;
 };
-
-
-void move_init(move* m, square from, square to, piece promote);
-
-
-int move_list_piecewise(square from, bitboard tos, piece promote, move* moves);
-int move_list_setwise(bitboard froms, bitboard tos, piece promote, move* moves);
-
-
-
-void move_init(move* m, square from, square to, piece promote)
-{
-    m->from = from;
-    m->to = to;
-    m->promote = promote;
-}
-
-
-int move_list_piecewise(square from, bitboard tos, piece promote, move* moves)
-{
-    int m = 0;
-    while(tos)
-    {
-        square to = bitboard_ls1b(tos);
-        tos = bitboard_reset(tos, to);
-        move_init(&moves[m++], from, to, promote);
-    }
-    return m;
-}
-
-int move_list_setwise(bitboard froms, bitboard tos, piece promote, move* moves)
-{
-    int m = 0;
-    while(froms && tos)
-    {
-        square from = bitboard_ls1b(froms);
-        square to = bitboard_ls1b(tos);
-        froms = bitboard_reset(froms, from);
-        tos = bitboard_reset(tos, to);
-        move_init(&moves[m++], from, to, promote);
-    }
-    return m;
-}
-
-
 
 }
 

@@ -204,6 +204,10 @@ bool from_san(std::string_view san, square& sq)
 }
 
 
+
+const std::string_view fen_start = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const std::string_view fen_empty = "8/8/8/8/8/8/8/8 w - - 0 1";
+
 bool from_fen(std::string_view fen, position& p)
 {
 	std::string fen_string(fen);

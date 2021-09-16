@@ -2,14 +2,7 @@
 #include <ctime>
 #include <cassert>
 
-#include <chess/random.hpp>
-#include <chess/position.hpp>
-#include <chess/bitboard.hpp>
-#include <chess/notation.hpp>
-
-
-// todo: divide
-
+#include <chess/chess.hpp>
 
 using namespace chess;
 

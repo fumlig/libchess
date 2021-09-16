@@ -2,6 +2,9 @@
 #define CHESS_TYPES_HPP
 
 
+#include <array>
+
+
 namespace chess
 {
 

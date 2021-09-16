@@ -116,13 +116,13 @@ bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
 }
 
 
-square bitboard_lsb(bitboard bb)
+square bitboard_ls1b(bitboard bb)
 {
     return static_cast<square>(std::countr_zero(bb));
 }
 
 
-square bitboard_msb(bitboard bb)
+square bitboard_ms1b(bitboard bb)
 {
     return static_cast<square>(square_h8 - std::countl_zero(bb));
 }

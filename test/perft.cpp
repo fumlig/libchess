@@ -2,7 +2,6 @@
 #include <ctime>
 #include <cassert>
 
-#include <chess/move.hpp>
 #include <chess/random.hpp>
 #include <chess/position.hpp>
 #include <chess/bitboard.hpp>

@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "types.hpp"
-#include "move.hpp"
 #include "random.hpp"
 #include "bitboard.hpp"
 #include "board.hpp"

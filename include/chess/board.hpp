@@ -11,7 +11,6 @@
 
 #include "types.hpp"
 #include "random.hpp"
-#include "move.hpp"
 #include "bitboard.hpp"
 
 

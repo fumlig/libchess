@@ -6,9 +6,7 @@
 #include <bit>
 #include <cstdint>
 
-#include "piece.hpp"
-#include "square.hpp"
-#include "direction.hpp"
+#include "types.hpp"
 #include "random.hpp"
 
 

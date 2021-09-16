@@ -5,11 +5,12 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
+#include <array>
 
+#include "types.hpp"
 #include "move.hpp"
 #include "random.hpp"
 #include "bitboard.hpp"
-#include "direction.hpp"
 #include "board.hpp"
 
 
@@ -24,23 +25,6 @@ namespace chess
 #define POSITION_FEN_LENGTH 85
 
 #define POSITION_MOVES_SIZE 218 // no positions have been found with more legal moves
-
-
-void position_init(random* r);
-
-
-class position
-{
-public:
-    board pieces;
-    side turn;
-    bool kingside_castle[sides];
-    bool queenside_castle[sides];
-    square en_passant;
-    int halfmove_clock;
-    int fullmove_number;
-    std::size_t hash;
-};
 
 
 static std::size_t side_hash;
@@ -64,103 +48,61 @@ void position_init(random* r)
 }
 
 
-void position_from_fen(position* p, const std::string& fen)
+
+
+class position
 {
-    if(fen == "startpos")
+public:
+    position():
+    pieces(),
+    turn{side_white},
+    kingside_castle{true, true},
+    queenside_castle{true, true},
+    en_passant{square_none},
+    halfmove_clock{0},
+    fullmove_number{0}
+    {}
+
+    position
+    (
+        board&& pieces, 
+        side turn = side_white,
+        bool white_kingside_castle = true,
+        bool white_queenside_castle = true,
+        bool black_kingside_castle = true,
+        bool black_queenside_castle = true,
+        square en_passant = square_none,
+        int halfmove_clock = 0,
+        int fullmove_number = 0
+    ):
+    pieces(pieces),
+    turn{turn},
+    kingside_castle{white_kingside_castle, black_kingside_castle},
+    queenside_castle{white_queenside_castle, black_queenside_castle},
+    en_passant{en_passant},
+    halfmove_clock{halfmove_clock},
+    fullmove_number{fullmove_number},
+    hash{0}
     {
-        // todo: not very clean...
-        position_from_fen(p, POSITION_FEN_START);
-        return;
+        if(turn == side_black)              hash ^= side_hash;
+        if(kingside_castle[side_white])     hash ^= kingside_castle_hash[side_white];
+        if(queenside_castle[side_white])    hash ^= queenside_castle_hash[side_white];
+        if(kingside_castle[side_black])     hash ^= kingside_castle_hash[side_black];
+        if(queenside_castle[side_black])    hash ^= queenside_castle_hash[side_black];
+        if(en_passant != square_none)       hash ^= en_passant_hash[square_file(en_passant)];
     }
 
-    std::string pieces, turn, castle, en_passant;
-    int halfmove_clock, fullmove_number;
+    board pieces;
+    side turn;
+    std::array<bool, sides> kingside_castle;
+    std::array<bool, sides> queenside_castle;
+    square en_passant;
+    int halfmove_clock;
+    int fullmove_number;
+    std::size_t hash;
+};
 
-    std::stringstream fen_stream(fen);
 
-    fen_stream >> pieces >> turn >> castle >> en_passant >> halfmove_clock >> fullmove_number;
- 
-
-    // board
-    board_clear(&p->pieces);
-    int r = rank_8;
-    int f = file_a;
-
-    for(char c : pieces)
-    {
-        if(c == '/')
-        {
-            r--;
-            f = file_a;
-            continue;
-        }
-
-        if('1' <= c && c <= '8')
-        {
-            f += c - '0';
-            continue;
-        }
-
-        side side;
-        piece piece = piece_from_san(c, &side);
-        square square = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
-
-        board_set(&p->pieces, square, side, piece);
-
-        f++;
-    }
-
-    // turn
-    p->turn = side_from_char(turn.front());
-    if(p->turn == side_black) p->hash ^= side_hash;
-
-    // castle
-    p->kingside_castle[side_white] = false;
-    p->queenside_castle[side_white] = false;
-    p->kingside_castle[side_black] = false;
-    p->queenside_castle[side_black] = false;
-
-    for(char c : castle)
-    {
-        switch(c)
-        {
-        case 'K':
-            p->kingside_castle[side_white] = true;
-            p->hash ^= kingside_castle_hash[side_white];
-            break;
-        case 'Q':
-            p->queenside_castle[side_white] = true;
-            p->hash ^= queenside_castle_hash[side_white];
-            break;
-        case 'k':
-            p->kingside_castle[side_black] = true;
-            p->hash ^= kingside_castle_hash[side_black];
-            break;
-        case 'q':
-            p->queenside_castle[side_black] = true;
-            p->hash ^= queenside_castle_hash[side_black];
-            break;
-        case '-':
-        default:
-            break;
-        }
-    }
-
-    // en passant
-    if(en_passant == "-")
-    {
-        p->en_passant = square_none;
-    }
-    else
-    {
-        p->en_passant = square_from_string(en_passant);
-        p->hash ^= en_passant_hash[square_file(p->en_passant)];
-    }
-
-    // move count
-    p->halfmove_clock = halfmove_clock;
-    p->fullmove_number = fullmove_number;
-}
 
 
 
@@ -503,21 +445,6 @@ std::size_t position_hash(const position* p)
     return p->hash ^ p->pieces.hash;
 }
 
-void position_copy(const position* src, position* dst)
-{
-    board_copy(&src->pieces, &dst->pieces);
-    
-    dst->turn = src->turn;
-    dst->kingside_castle[side_white] = src->kingside_castle[side_white];
-    dst->kingside_castle[side_black] = src->kingside_castle[side_black];
-    dst->queenside_castle[side_white] = src->queenside_castle[side_white];
-    dst->queenside_castle[side_black] = src->queenside_castle[side_black];
-    dst->en_passant = src->en_passant;
-    dst->halfmove_clock = src->halfmove_clock;
-    dst->fullmove_number = src->fullmove_number;
-    
-    dst->hash = src->hash;
-}
 
 }
 

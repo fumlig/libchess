@@ -5,6 +5,7 @@
 #include <chess/random.hpp>
 #include <chess/position.hpp>
 #include <chess/bitboard.hpp>
+#include <chess/notation.hpp>
 
 
 // todo: divide
@@ -121,6 +122,7 @@ int main(int argc, char* argv[])
     {
         if(fen == perfts[i].name)
         {
+            std::cout << "using position from table" << std::endl;
             fen = perfts[i].fen;
             result_depth = perfts[i].depth;
             result_nodes = perfts[i].nodes;
@@ -129,7 +131,7 @@ int main(int argc, char* argv[])
     }
 
     position p;
-    position_from_fen(&p, fen);
+    from_fen(fen, p);
 
     timespec begin, end;
     clock_gettime(CLOCK_MONOTONIC, &begin);

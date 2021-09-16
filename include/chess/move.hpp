@@ -13,9 +13,6 @@ namespace chess
 {
 
 
-#define MOVE_UCI_LENGTH 6 // "d2d4", "a7a8q"
-
-
 struct position;
 
 

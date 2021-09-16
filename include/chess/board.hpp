@@ -5,10 +5,12 @@
 #include <iostream>
 #include <cstdint>
 #include <cstddef>
+#include <utility>
+#include <unordered_map>
+#include <array>
 
-#include "piece.hpp"
+#include "types.hpp"
 #include "random.hpp"
-#include "square.hpp"
 #include "move.hpp"
 #include "bitboard.hpp"
 
@@ -20,22 +22,6 @@ namespace chess
 using bitboard = std::uint64_t;
 struct move;
 
-
-
-void board_init(random* r);
-
-
-class board
-{
-public:
-    side square_sides[squares];
-    piece square_pieces[squares];
-
-    bitboard side_masks[sides];
-    bitboard piece_masks[pieces];
-
-    std::size_t hash;
-};
 
 
 static std::size_t board_hash_keys[squares][sides][pieces];
@@ -55,6 +41,65 @@ void board_init(random* r)
         }
     }
 }
+
+
+class board
+{
+public:
+    board():
+    square_sides{},
+    square_pieces{},
+    side_masks{},
+    piece_masks{},
+    hash{0}
+    {
+        square_sides.fill(side_none);
+        square_pieces.fill(piece_none);
+        side_masks.fill(empty_mask);
+        piece_masks.fill(empty_mask);
+    }
+
+    board(const std::unordered_map<square, std::pair<side, piece>>& pieces):
+    board()
+    {
+        for(auto [sq, sp]: pieces)
+        {
+            auto [s, p] = sp;
+            set(sq, s, p);
+        }
+    }
+
+    void set(square sq, side s, piece p)
+    {
+        side s_prev = square_sides[sq];
+        piece p_prev = square_pieces[sq];
+
+        square_sides[sq] = s;
+        square_pieces[sq] = p;
+
+        if(s_prev != side_none && p_prev != piece_none)
+        {
+            side_masks[s_prev] = bitboard_reset(side_masks[s_prev], sq);
+            piece_masks[p_prev] = bitboard_reset(piece_masks[p_prev], sq);
+            hash ^= board_hash_keys[sq][s_prev][p_prev];
+        }
+
+        if(s != side_none && p != piece_none)
+        {
+            side_masks[s] = bitboard_set(side_masks[s], sq);
+            piece_masks[p] = bitboard_set(piece_masks[p], sq);
+            hash ^= board_hash_keys[sq][s][p];
+        }
+    }
+
+    std::array<side, squares> square_sides;
+    std::array<piece, squares> square_pieces;
+
+    std::array<bitboard, sides> side_masks;
+    std::array<bitboard, pieces> piece_masks;
+
+    std::size_t hash{0};
+};
 
 
 void board_clear(board* b)
@@ -186,29 +231,6 @@ bitboard board_attacks(const board* b, side s)
 std::size_t board_hash(const board* b)
 {
     return b->hash;
-}
-
-void board_copy(const board* src, board* dst)
-{
-    for(int i = square_a1; i <= square_h8; i++)
-    {
-        const square sq = static_cast<square>(i);
-
-        dst->square_sides[sq] = src->square_sides[sq];
-        dst->square_pieces[sq] = src->square_pieces[sq];
-    }
-
-    dst->side_masks[side_white] = src->side_masks[side_white];
-    dst->side_masks[side_black] = src->side_masks[side_black];
-
-    dst->piece_masks[piece_pawn]   = src->piece_masks[piece_pawn];
-    dst->piece_masks[piece_rook]   = src->piece_masks[piece_rook];
-    dst->piece_masks[piece_knight] = src->piece_masks[piece_knight];
-    dst->piece_masks[piece_bishop] = src->piece_masks[piece_bishop];
-    dst->piece_masks[piece_queen]  = src->piece_masks[piece_queen];
-    dst->piece_masks[piece_king]   = src->piece_masks[piece_king];
-
-    dst->hash = src->hash;
 }
 
 

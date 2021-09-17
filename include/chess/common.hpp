@@ -21,7 +21,7 @@ enum side
 };
 
 
-side side_opposite(side s)
+constexpr side side_opposite(side s)
 {
     return static_cast<side>(!s);
 }
@@ -74,23 +74,23 @@ enum square
 
 
 
-rank rank_side(rank r, side s)
+constexpr rank rank_side(rank r, side s)
 {
     return static_cast<rank>(r*static_cast<int>(side_opposite(s)) + (rank_8-r)*s);
 }
 
 
-file square_file(square sq)
+constexpr file square_file(square sq)
 {
     return static_cast<file>(sq % 8);
 }
 
-rank square_rank(square sq)
+constexpr rank square_rank(square sq)
 {
     return static_cast<rank>(sq / 8);
 }
 
-square square_from_file_rank(file f, rank r)
+constexpr square square_from_file_rank(file f, rank r)
 {
     return static_cast<square>(r*8 + f);
 }
@@ -138,12 +138,12 @@ enum direction
     direction_none  = 0,
 };
 
-direction direction_opposite(direction d)
+constexpr direction direction_opposite(direction d)
 {
     return static_cast<direction>((d + 8) % 16);
 }
 
-direction direction_forward(side s)
+constexpr direction direction_forward(side s)
 {
     switch(s)
     {
@@ -166,44 +166,44 @@ const bitboard bitboard_empty = 0ULL;
 const bitboard bitboard_full = ~0ULL;
 
 
-bitboard square_mask(square sq)
+constexpr bitboard square_mask(square sq)
 {
     return 1ULL << sq;
 }
 
-bitboard file_mask(file f)
+constexpr bitboard file_mask(file f)
 {
     return 0x0101010101010101ULL << f;
 }
 
-bitboard rank_mask(rank r)
+constexpr bitboard rank_mask(rank r)
 {
     return 0xFFULL << (r*8);
 }
 
 
-bool bitboard_get(bitboard bb, square sq)
+inline bool bitboard_get(bitboard bb, square sq)
 {
     return bb & square_mask(sq);
 }
 
-bitboard bitboard_set(bitboard bb, square sq)
+inline bitboard bitboard_set(bitboard bb, square sq)
 {
     return bb | square_mask(sq);
 }
 
-bitboard bitboard_toggle(bitboard bb, square sq)
+inline bitboard bitboard_toggle(bitboard bb, square sq)
 {
     return bb ^ square_mask(sq);
 }
 
-bitboard bitboard_reset(bitboard bb, square sq)
+inline bitboard bitboard_reset(bitboard bb, square sq)
 {
     return bb & ~square_mask(sq);
 }
 
 
-bitboard bitboard_shift(bitboard bb, direction d)
+inline bitboard bitboard_shift(bitboard bb, direction d)
 {
     if(d > 0)
     {
@@ -247,7 +247,7 @@ bitboard bitboard_shift(bitboard bb, direction d)
     return bb;
 }
 
-bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
+inline bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
 {
     bitboard shift = bb;
     bitboard ray = 0;
@@ -260,18 +260,17 @@ bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
 }
 
 
-square bitboard_ls1b(bitboard bb)
+inline square bitboard_ls1b(bitboard bb)
 {
     return static_cast<square>(std::countr_zero(bb));
 }
 
-
-square bitboard_ms1b(bitboard bb)
+inline square bitboard_ms1b(bitboard bb)
 {
     return static_cast<square>(square_h8 - std::countl_zero(bb));
 }
 
-int bitboard_count(bitboard bb)
+inline int bitboard_count(bitboard bb)
 {
     return std::popcount(bb);
 }
@@ -286,7 +285,7 @@ struct magic
     unsigned shift;
 };
 
-unsigned magic_index(const magic& m, bitboard occupied)
+inline unsigned magic_index(const magic& m, bitboard occupied)
 {
     return ((occupied & m.mask) * m.magic) >> m.shift;
 }
@@ -324,40 +323,39 @@ inline std::array<bitboard, 0x1480> bishop_attacks;
 inline std::array<bitboard, squares> king_attacks;
 
 
-bitboard pawn_east_attack_mask(bitboard bb, side s)
+inline bitboard pawn_east_attack_mask(bitboard bb, side s)
 {
     return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + direction_e));
 }
 
-bitboard pawn_west_attack_mask(bitboard bb, side s)
+inline bitboard pawn_west_attack_mask(bitboard bb, side s)
 {
     return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + direction_w));
 }
 
-bitboard rook_attack_mask(square sq, bitboard occupied)
+inline bitboard rook_attack_mask(square sq, bitboard occupied)
 {
     unsigned index = magic_index(rook_magics[sq], occupied);
     return rook_magics[sq].attacks[index];
 }
 
-bitboard knight_attack_mask(square sq)
+inline bitboard knight_attack_mask(square sq)
 {
     return knight_attacks[sq];
 }
 
-bitboard bishop_attack_mask(square sq, bitboard occupied)
+inline bitboard bishop_attack_mask(square sq, bitboard occupied)
 {
     unsigned index = magic_index(bishop_magics[sq], occupied);
     return bishop_magics[sq].attacks[index];
 }
 
-bitboard queen_attack_mask(square sq, bitboard occupied)
+inline bitboard queen_attack_mask(square sq, bitboard occupied)
 {
     return rook_attack_mask(sq, occupied) | bishop_attack_mask(sq, occupied);
 }
 
-
-bitboard king_attack_mask(square sq)
+inline bitboard king_attack_mask(square sq)
 {
     return king_attacks[sq];
 }

@@ -90,29 +90,29 @@ public:
     }
 
 
-    bitboard empty_mask() const
+    inline bitboard empty_mask() const
     {
         return ~(side_masks[side_white] | side_masks[side_black]);
     }
 
-    bitboard occupied_mask() const
+    inline bitboard occupied_mask() const
     {
         return side_masks[side_white] | side_masks[side_black];
     }
 
     // todo: side_none and piece_none can be used here
    
-    bitboard side_mask(side s) const
+    inline bitboard side_mask(side s) const
     {
         return side_masks[s];
     }
 
-    bitboard piece_mask(piece p) const
+    inline bitboard piece_mask(piece p) const
     {
         return piece_masks[p];
     }
 
-    bitboard side_piece_mask(side s, piece p) const
+    inline bitboard side_piece_mask(side s, piece p) const
     {
         return side_masks[s] & piece_masks[p];
     }
@@ -169,7 +169,7 @@ public:
         return attacks;
     }
 
-    std::size_t hash() const
+    inline std::size_t hash() const
     {
         return zobrist_hash;
     }

@@ -374,32 +374,23 @@ public:
         return moves;
     }
 
-    int fullmove() const
+    inline int fullmove() const
     {
         return fullmove_number;
     }
 
-    int halfmove() const
+    inline int halfmove() const
     {
         return (fullmove_number - 1)*2 + turn;
     }
 
-    std::size_t hash() const
+    inline std::size_t hash() const
     {
         return zobrist_hash ^ pieces.hash();
     }
 
-    board pieces;
-    side turn;
-    std::array<bool, sides> kingside_castle;
-    std::array<bool, sides> queenside_castle;
-    square en_passant;
-    int halfmove_clock;
-    int fullmove_number;
-    std::size_t zobrist_hash;
-
 private:
-    void piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves)
+    inline void piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves)
     {
         while(tos)
         {
@@ -409,7 +400,7 @@ private:
         }
     }
 
-    void setwise_moves(bitboard froms, bitboard tos, piece promote, std::vector<move>& moves)
+    inline void setwise_moves(bitboard froms, bitboard tos, piece promote, std::vector<move>& moves)
     {
         while(froms && tos)
         {
@@ -420,6 +411,15 @@ private:
             moves.emplace_back(from, to, promote);
         }
     }
+
+    board pieces;
+    side turn;
+    std::array<bool, sides> kingside_castle;
+    std::array<bool, sides> queenside_castle;
+    square en_passant;
+    int halfmove_clock;
+    int fullmove_number;
+    std::size_t zobrist_hash;
 };
 
 

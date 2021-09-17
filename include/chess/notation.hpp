@@ -6,11 +6,10 @@
 #include <string>
 #include <sstream>
 #include <cctype>
-#include <ranges>
 #include <unordered_map>
 #include <utility>
 
-#include "types.hpp"
+#include "common.hpp"
 #include "position.hpp"
 
 

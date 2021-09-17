@@ -2,8 +2,7 @@
 #define CHESS_HPP
 
 
-#include "types.hpp"
-#include "bitboard.hpp"
+#include "common.hpp"
 #include "board.hpp"
 #include "position.hpp"
 #include "notation.hpp"

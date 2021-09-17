@@ -8,37 +8,12 @@
 #include <array>
 #include <vector>
 
-#include "types.hpp"
-#include "random.hpp"
-#include "bitboard.hpp"
+#include "common.hpp"
 #include "board.hpp"
 
 
 namespace chess
 {
-
-
-static std::size_t side_hash;
-static std::size_t kingside_castle_hash[sides];
-static std::size_t queenside_castle_hash[sides];
-static std::size_t en_passant_hash[files];
-
-void position_init(random* r)
-{
-    side_hash = random_generate(r);
-
-    kingside_castle_hash[side_white] = random_generate(r);
-    kingside_castle_hash[side_black] = random_generate(r);
-    queenside_castle_hash[side_white] = random_generate(r);
-    queenside_castle_hash[side_black] = random_generate(r);
-
-    for(int f = file_a; f <= file_h; f++)
-    {
-        en_passant_hash[f] = random_generate(r);
-    }
-}
-
-
 
 
 class position
@@ -76,12 +51,12 @@ public:
     fullmove_number{fullmove_number},
     zobrist_hash{0}
     {
-        if(turn == side_black)              zobrist_hash ^= side_hash;
-        if(kingside_castle[side_white])     zobrist_hash ^= kingside_castle_hash[side_white];
-        if(queenside_castle[side_white])    zobrist_hash ^= queenside_castle_hash[side_white];
-        if(kingside_castle[side_black])     zobrist_hash ^= kingside_castle_hash[side_black];
-        if(queenside_castle[side_black])    zobrist_hash ^= queenside_castle_hash[side_black];
-        if(en_passant != square_none)       zobrist_hash ^= en_passant_hash[square_file(en_passant)];
+        if(turn == side_black)              zobrist_hash ^= side_zobrist_hash;
+        if(kingside_castle[side_white])     zobrist_hash ^= kingside_castle_zobrist_hash[side_white];
+        if(queenside_castle[side_white])    zobrist_hash ^= queenside_castle_zobrist_hash[side_white];
+        if(kingside_castle[side_black])     zobrist_hash ^= kingside_castle_zobrist_hash[side_black];
+        if(queenside_castle[side_black])    zobrist_hash ^= queenside_castle_zobrist_hash[side_black];
+        if(en_passant != square_none)       zobrist_hash ^= en_passant_zobrist_hash[square_file(en_passant)];
     }
 
 
@@ -97,7 +72,7 @@ public:
         else pieces.set(m.to, side, piece);
 
         en_passant = square_none;
-        if(ep != square_none) zobrist_hash ^= en_passant_hash[square_file(ep)];
+        if(ep != square_none) zobrist_hash ^= en_passant_zobrist_hash[square_file(ep)];
 
         if(piece == piece_pawn)
         {
@@ -105,7 +80,7 @@ public:
             {
                 // double push
                 en_passant = square_from_file_rank(square_file(m.from), rank_side(rank_3, side));
-                zobrist_hash ^= en_passant_hash[square_file(en_passant)];
+                zobrist_hash ^= en_passant_zobrist_hash[square_file(en_passant)];
             }
             else if(m.to == ep)
             {
@@ -119,12 +94,12 @@ public:
             if(kingside_castle[side])
             {
                 kingside_castle[side] = false;
-                zobrist_hash ^= kingside_castle_hash[side];
+                zobrist_hash ^= kingside_castle_zobrist_hash[side];
             }
             if(queenside_castle[side])
             {
                 queenside_castle[side] = false;
-                zobrist_hash ^= queenside_castle_hash[side];
+                zobrist_hash ^= queenside_castle_zobrist_hash[side];
             }
             
             rank rank_first = rank_side(rank_1, side);
@@ -150,28 +125,28 @@ public:
         if(queenside_castle[side_white] && (m.from == square_a1 || m.to == square_a1))
         {
             queenside_castle[side_white] = false;
-            zobrist_hash ^= queenside_castle_hash[side_white];
+            zobrist_hash ^= queenside_castle_zobrist_hash[side_white];
         }
         if(kingside_castle[side_white] && (m.from == square_h1 || m.to == square_h1))
         {
             kingside_castle[side_white] = false;
-            zobrist_hash ^= kingside_castle_hash[side_white];
+            zobrist_hash ^= kingside_castle_zobrist_hash[side_white];
         }
         if(queenside_castle[side_black] && (m.from == square_a8 || m.to == square_a8))
         {
             queenside_castle[side_black] = false;
-            zobrist_hash ^= queenside_castle_hash[side_black];
+            zobrist_hash ^= queenside_castle_zobrist_hash[side_black];
         }
         if(kingside_castle[side_black] && (m.from == square_h8 || m.to == square_h8))
         {
             kingside_castle[side_black] = false;
-            zobrist_hash ^= kingside_castle_hash[side_black];
+            zobrist_hash ^= kingside_castle_zobrist_hash[side_black];
         }
 
         halfmove_clock++; // todo: only if silent
         fullmove_number += turn;
         turn = side_opposite(turn);
-        zobrist_hash ^= side_hash;
+        zobrist_hash ^= side_zobrist_hash;
 
         return u;
     }
@@ -186,29 +161,29 @@ public:
         if(u.capture != piece_none) pieces.set(m.to, side_opposite(side), u.capture);
         if(m.promote != piece_none) pieces.set(m.from, side, piece_pawn);
 
-        if(en_passant != square_none) zobrist_hash ^= en_passant_hash[square_file(en_passant)];
-        if(u.en_passant != square_none) zobrist_hash ^= en_passant_hash[square_file(u.en_passant)];
+        if(en_passant != square_none) zobrist_hash ^= en_passant_zobrist_hash[square_file(en_passant)];
+        if(u.en_passant != square_none) zobrist_hash ^= en_passant_zobrist_hash[square_file(u.en_passant)];
         en_passant = u.en_passant;
 
         if(kingside_castle[side_white] != u.kingside_castle[side_white])
         {
             kingside_castle[side_white] = u.kingside_castle[side_white];
-            zobrist_hash ^= kingside_castle_hash[side_white];
+            zobrist_hash ^= kingside_castle_zobrist_hash[side_white];
         }
         if(kingside_castle[side_black] != u.kingside_castle[side_black])
         {
             kingside_castle[side_black] = u.kingside_castle[side_black];
-            zobrist_hash ^= kingside_castle_hash[side_black];
+            zobrist_hash ^= kingside_castle_zobrist_hash[side_black];
         }
         if(queenside_castle[side_white] != u.queenside_castle[side_white])
         {
             queenside_castle[side_white] = u.queenside_castle[side_white];
-            zobrist_hash ^= queenside_castle_hash[side_white];
+            zobrist_hash ^= queenside_castle_zobrist_hash[side_white];
         }
         if(queenside_castle[side_black] != u.queenside_castle[side_black])
         {
             queenside_castle[side_black] = u.queenside_castle[side_black];
-            zobrist_hash ^= queenside_castle_hash[side_black];
+            zobrist_hash ^= queenside_castle_zobrist_hash[side_black];
         }
 
         if(piece == piece_pawn)
@@ -241,7 +216,7 @@ public:
         halfmove_clock--; // todo: only if silent
         fullmove_number -= side_opposite(turn); // decrease if white
         turn = side_opposite(turn);
-        zobrist_hash ^= side_hash;
+        zobrist_hash ^= side_zobrist_hash;
     }
 
     std::vector<move> moves()
@@ -314,7 +289,7 @@ public:
         {
             square from = bitboard_ls1b(rooks);
             rooks = bitboard_reset(rooks, from);
-            bitboard attacks = bitboard_rook_attacks(from, occupied) & attack_mask;
+            bitboard attacks = rook_attack_mask(from, occupied) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
 
@@ -323,7 +298,7 @@ public:
         {
             square from = bitboard_ls1b(knights);
             knights = bitboard_reset(knights, from);
-            bitboard attacks = bitboard_knight_attacks(from) & attack_mask;
+            bitboard attacks = knight_attack_mask(from) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
 
@@ -332,7 +307,7 @@ public:
         {
             square from = bitboard_ls1b(bishops);
             bishops = bitboard_reset(bishops, from);
-            bitboard attacks = bitboard_bishop_attacks(from, occupied) & attack_mask;
+            bitboard attacks = bishop_attack_mask(from, occupied) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
 
@@ -341,7 +316,7 @@ public:
         {
             square from = bitboard_ls1b(queens);
             queens = bitboard_reset(queens, from);
-            bitboard attacks = (bitboard_rook_attacks(from, occupied) | bitboard_bishop_attacks(from, occupied)) & attack_mask;
+            bitboard attacks = (rook_attack_mask(from, occupied) | bishop_attack_mask(from, occupied)) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
 
@@ -378,7 +353,7 @@ public:
         {
             square from = bitboard_ls1b(kings);
             kings = bitboard_reset(kings, from);
-            bitboard attacks = bitboard_king_attacks(from) & attack_mask;
+            bitboard attacks = king_attack_mask(from) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
 
@@ -399,12 +374,12 @@ public:
         return moves;
     }
 
-    int fullmove(position* p) const
+    int fullmove() const
     {
         return fullmove_number;
     }
 
-    int halfmove(position* p) const
+    int halfmove() const
     {
         return (fullmove_number - 1)*2 + turn;
     }

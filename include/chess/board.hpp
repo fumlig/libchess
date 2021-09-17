@@ -9,32 +9,11 @@
 #include <unordered_map>
 #include <array>
 
-#include "types.hpp"
-#include "random.hpp"
-#include "bitboard.hpp"
+#include "common.hpp"
 
 
 namespace chess
 {
-
-
-static std::size_t board_hash_keys[squares][sides][pieces];
-
-
-void board_init(random* r)
-{
-    for(int i = square_a1; i <= square_h8; i++)
-    {
-        for(int j = piece_pawn; j <= piece_king; j++)
-        {
-            square sq = static_cast<square>(i);
-            piece p = static_cast<piece>(j);
-
-            board_hash_keys[sq][side_white][p] = random_generate(r);
-            board_hash_keys[sq][side_black][p] = random_generate(r);
-        }
-    }
-}
 
 
 class board
@@ -80,14 +59,14 @@ public:
         {
             side_masks[s_prev] = bitboard_reset(side_masks[s_prev], sq);
             piece_masks[p_prev] = bitboard_reset(piece_masks[p_prev], sq);
-            zobrist_hash ^= board_hash_keys[sq][s_prev][p_prev];
+            zobrist_hash ^= pieces_zobrist_hash[sq][s_prev][p_prev];
         }
 
         if(s != side_none && p != piece_none)
         {
             side_masks[s] = bitboard_set(side_masks[s], sq);
             piece_masks[p] = bitboard_set(piece_masks[p], sq);
-            zobrist_hash ^= board_hash_keys[sq][s][p];
+            zobrist_hash ^= pieces_zobrist_hash[sq][s][p];
         }
     }
 
@@ -156,35 +135,35 @@ public:
         {
             square from = bitboard_ls1b(rooks);
             rooks = bitboard_reset(rooks, from);
-            attacks |= bitboard_rook_attacks(from, occupied_mask());
+            attacks |= rook_attack_mask(from, occupied_mask());
         }
 
         while(knights)
         {
             square from = bitboard_ls1b(knights);
             knights = bitboard_reset(knights, from);
-            attacks |= bitboard_knight_attacks(from);
+            attacks |= knight_attack_mask(from);
         }
 
         while(bishops)
         {
             square from = bitboard_ls1b(bishops);
             bishops = bitboard_reset(bishops, from);
-            attacks |= bitboard_bishop_attacks(from, occupied_mask());
+            attacks |= bishop_attack_mask(from, occupied_mask());
         }
 
         while(queens)
         {
             square from = bitboard_ls1b(queens);
             queens = bitboard_reset(queens, from);
-            attacks |= (bitboard_rook_attacks(from, occupied_mask()) | bitboard_bishop_attacks(from, occupied_mask()));
+            attacks |= (rook_attack_mask(from, occupied_mask()) | bishop_attack_mask(from, occupied_mask()));
         }
 
         while(kings)
         {
             square from = bitboard_ls1b(kings);
             kings = bitboard_reset(kings, from);
-            attacks |= bitboard_king_attacks(from);
+            attacks |= king_attack_mask(from);
         }
 
         return attacks;

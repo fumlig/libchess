@@ -94,11 +94,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    chess::random r;
-    random_init(&r, 2147483647);
-    bitboard_init(&r);
-    board_init(&r);
-    position_init(&r);
+    chess::init();
 
     std::string fen = argv[1];
     int depth = atoi(argv[2]);

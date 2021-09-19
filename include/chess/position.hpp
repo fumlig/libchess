@@ -56,7 +56,7 @@ public:
         if(queenside_castle[side_white])    zobrist_hash ^= queenside_castle_zobrist_hash[side_white];
         if(kingside_castle[side_black])     zobrist_hash ^= kingside_castle_zobrist_hash[side_black];
         if(queenside_castle[side_black])    zobrist_hash ^= queenside_castle_zobrist_hash[side_black];
-        if(en_passant != square_none)       zobrist_hash ^= en_passant_zobrist_hash[square_file(en_passant)];
+        if(en_passant != square_none)       zobrist_hash ^= en_passant_zobrist_hash[file_of(en_passant)];
     }
 
 
@@ -72,20 +72,20 @@ public:
         else pieces.set(m.to, side, piece);
 
         en_passant = square_none;
-        if(ep != square_none) zobrist_hash ^= en_passant_zobrist_hash[square_file(ep)];
+        if(ep != square_none) zobrist_hash ^= en_passant_zobrist_hash[file_of(ep)];
 
         if(piece == piece_pawn)
         {
-            if(square_rank(m.from) == rank_side(rank_2, side) && square_rank(m.to) == rank_side(rank_4, side))
+            if(rank_of(m.from) == side_rank(side, rank_2) && rank_of(m.to) == side_rank(side, rank_4))
             {
                 // double push
-                en_passant = square_from_file_rank(square_file(m.from), rank_side(rank_3, side));
-                zobrist_hash ^= en_passant_zobrist_hash[square_file(en_passant)];
+                en_passant = cat_coords(file_of(m.from), side_rank(side, rank_3));
+                zobrist_hash ^= en_passant_zobrist_hash[file_of(en_passant)];
             }
             else if(m.to == ep)
             {
                 // en passant capture
-                square ep_capture = square_from_file_rank(square_file(ep), rank_side(rank_5, side));
+                square ep_capture = cat_coords(file_of(ep), side_rank(side, rank_5));
                 pieces.set(ep_capture, side_none, piece_none);
             }
         }
@@ -102,19 +102,19 @@ public:
                 zobrist_hash ^= queenside_castle_zobrist_hash[side];
             }
             
-            rank rank_first = rank_side(rank_1, side);
+            rank rank_first = side_rank(side, rank_1);
 
-            if(m.from == square_from_file_rank(file_e, rank_first))
+            if(m.from == cat_coords(file_e, rank_first))
             {
-                if(m.to == square_from_file_rank(file_g, rank_first))
+                if(m.to == cat_coords(file_g, rank_first))
                 {
-                    pieces.set(square_from_file_rank(file_h, rank_first), side_none, piece_none);
-                    pieces.set(square_from_file_rank(file_f, rank_first), side, piece_rook);
+                    pieces.set(cat_coords(file_h, rank_first), side_none, piece_none);
+                    pieces.set(cat_coords(file_f, rank_first), side, piece_rook);
                 }
-                else if(m.to == square_from_file_rank(file_c, rank_side(rank_1, side)))
+                else if(m.to == cat_coords(file_c, rank_first))
                 {
-                    pieces.set(square_from_file_rank(file_a, rank_first), side_none, piece_none);
-                    pieces.set(square_from_file_rank(file_d, rank_first), side, piece_rook);
+                    pieces.set(cat_coords(file_a, rank_first), side_none, piece_none);
+                    pieces.set(cat_coords(file_d, rank_first), side, piece_rook);
                 }
             }
         }
@@ -145,7 +145,7 @@ public:
 
         halfmove_clock++; // todo: only if silent
         fullmove_number += turn;
-        turn = side_opposite(turn);
+        turn = opponent(turn);
         zobrist_hash ^= side_zobrist_hash;
 
         return u;
@@ -158,11 +158,11 @@ public:
 
         pieces.set(m.from, side, piece);
         pieces.set(m.to, side_none, piece_none);
-        if(u.capture != piece_none) pieces.set(m.to, side_opposite(side), u.capture);
+        if(u.capture != piece_none) pieces.set(m.to, opponent(side), u.capture);
         if(m.promote != piece_none) pieces.set(m.from, side, piece_pawn);
 
-        if(en_passant != square_none) zobrist_hash ^= en_passant_zobrist_hash[square_file(en_passant)];
-        if(u.en_passant != square_none) zobrist_hash ^= en_passant_zobrist_hash[square_file(u.en_passant)];
+        if(en_passant != square_none) zobrist_hash ^= en_passant_zobrist_hash[file_of(en_passant)];
+        if(u.en_passant != square_none) zobrist_hash ^= en_passant_zobrist_hash[file_of(u.en_passant)];
         en_passant = u.en_passant;
 
         if(kingside_castle[side_white] != u.kingside_castle[side_white])
@@ -190,32 +190,32 @@ public:
         {
             if(m.to == u.en_passant)
             {
-                square ep_capture = square_from_file_rank(square_file(u.en_passant), rank_side(rank_5, side));
-                pieces.set(ep_capture, side_opposite(side), piece_pawn);
+                square ep_capture = cat_coords(file_of(u.en_passant), side_rank(side, rank_5));
+                pieces.set(ep_capture, opponent(side), piece_pawn);
             }
         }
         else if(piece == piece_king)
         {
-            rank rank_first = rank_side(rank_1, side);
+            rank rank_first = side_rank(side, rank_1);
 
-            if(m.from == square_from_file_rank(file_e, rank_first))
+            if(m.from == cat_coords(file_e, rank_first))
             {
-                if(m.to == square_from_file_rank(file_g, rank_first))
+                if(m.to == cat_coords(file_g, rank_first))
                 {
-                    pieces.set(square_from_file_rank(file_h, rank_first), side, piece_rook);
-                    pieces.set(square_from_file_rank(file_f, rank_first), side_none, piece_none);
+                    pieces.set(cat_coords(file_h, rank_first), side, piece_rook);
+                    pieces.set(cat_coords(file_f, rank_first), side_none, piece_none);
                 }
-                else if(m.to == square_from_file_rank(file_c, rank_side(rank_1, side)))
+                else if(m.to == cat_coords(file_c, side_rank(side, rank_1)))
                 {
-                    pieces.set(square_from_file_rank(file_a, rank_first), side, piece_rook);
-                    pieces.set(square_from_file_rank(file_d, rank_first), side_none, piece_none);
+                    pieces.set(cat_coords(file_a, rank_first), side, piece_rook);
+                    pieces.set(cat_coords(file_d, rank_first), side_none, piece_none);
                 }
             }
         }
 
-        halfmove_clock--; // todo: only if silent
-        fullmove_number -= side_opposite(turn); // decrease if white
-        turn = side_opposite(turn);
+        halfmove_clock--; // todo: only if silent move
+        fullmove_number -= opponent(turn); // decrease if white
+        turn = opponent(turn);
         zobrist_hash ^= side_zobrist_hash;
     }
 
@@ -223,38 +223,37 @@ public:
     {
         std::vector<move> moves;
 
-        side player = turn, opponent = side_opposite(turn);
         bitboard occupied = pieces.occupied_mask();
         
-        bitboard pawns = pieces.side_piece_mask(player, piece_pawn);
-        bitboard rooks = pieces.side_piece_mask(player, piece_rook);
-        bitboard knights = pieces.side_piece_mask(player, piece_knight);
-        bitboard bishops = pieces.side_piece_mask(player, piece_bishop);
-        bitboard queens = pieces.side_piece_mask(player, piece_queen);
-        bitboard kings = pieces.side_piece_mask(player, piece_king);
+        bitboard pawns = pieces.side_piece_mask(turn, piece_pawn);
+        bitboard rooks = pieces.side_piece_mask(turn, piece_rook);
+        bitboard knights = pieces.side_piece_mask(turn, piece_knight);
+        bitboard bishops = pieces.side_piece_mask(turn, piece_bishop);
+        bitboard queens = pieces.side_piece_mask(turn, piece_queen);
+        bitboard kings = pieces.side_piece_mask(turn, piece_king);
         
-        bitboard attack_mask = ~pieces.side_mask(player);
-        bitboard capture_mask = pieces.side_mask(opponent);
+        bitboard attack_mask = ~pieces.side_mask(turn);
+        bitboard capture_mask = pieces.side_mask(opponent(turn));
         bitboard ep_mask = 0;
         if(en_passant != square_none) ep_mask = square_mask(en_passant);
 
         // pawn moves
-        bitboard single_push_tos = bitboard_shift(pawns, direction_forward(player)) & ~occupied;
-        bitboard single_push_froms = bitboard_shift(single_push_tos, direction_forward(opponent));  
-        bitboard double_push_tos = bitboard_shift(single_push_tos & rank_mask(rank_side(rank_3, player)), direction_forward(player)) & ~occupied;
-        bitboard double_push_froms = bitboard_shift(bitboard_shift(double_push_tos, direction_forward(opponent)), direction_forward(opponent));
+        bitboard single_push_tos = bitboard_shift(pawns, forwards(turn)) & ~occupied;
+        bitboard single_push_froms = bitboard_shift(single_push_tos, forwards(opponent(turn)));
+        bitboard double_push_tos = bitboard_shift(single_push_tos & rank_mask(side_rank(turn, rank_3)), forwards(turn)) & ~occupied;
+        bitboard double_push_froms = bitboard_shift(bitboard_shift(double_push_tos, forwards(opponent(turn))), forwards(opponent(turn)));
 
-        bitboard attack_east_tos = bitboard_shift(pawns, static_cast<direction>(direction_forward(player) + direction_e)) & (capture_mask | ep_mask);
-        bitboard attack_east_froms = bitboard_shift(attack_east_tos, static_cast<direction>(direction_forward(opponent) + direction_w));
-        bitboard attack_west_tos = bitboard_shift(pawns, static_cast<direction>(direction_forward(player) + direction_w)) & (capture_mask | ep_mask);
-        bitboard attack_west_froms = bitboard_shift(attack_west_tos, static_cast<direction>(direction_forward(opponent) + direction_e));
+        bitboard attack_east_tos = bitboard_shift(pawns, static_cast<direction>(forwards(turn) + direction_e)) & (capture_mask | ep_mask);
+        bitboard attack_east_froms = bitboard_shift(attack_east_tos, static_cast<direction>(forwards(opponent(turn)) + direction_w));
+        bitboard attack_west_tos = bitboard_shift(pawns, static_cast<direction>(forwards(turn) + direction_w)) & (capture_mask | ep_mask);
+        bitboard attack_west_froms = bitboard_shift(attack_west_tos, static_cast<direction>(forwards(opponent(turn)) + direction_e));
         
-        bitboard promote_push_tos = single_push_tos & rank_mask(rank_side(rank_8, player));
-        bitboard promote_push_froms = single_push_froms & rank_mask(rank_side(rank_7, player));
-        bitboard promote_east_tos = attack_east_tos & rank_mask(rank_side(rank_8, player));
-        bitboard promote_east_froms = attack_east_froms & rank_mask(rank_side(rank_7, player));
-        bitboard promote_west_tos = attack_west_tos & rank_mask(rank_side(rank_8, player));
-        bitboard promote_west_froms = attack_west_froms & rank_mask(rank_side(rank_7, player));;
+        bitboard promote_push_tos = single_push_tos & rank_mask(side_rank(turn, rank_8));
+        bitboard promote_push_froms = single_push_froms & rank_mask(side_rank(turn, rank_7));
+        bitboard promote_east_tos = attack_east_tos & rank_mask(side_rank(turn, rank_8));
+        bitboard promote_east_froms = attack_east_froms & rank_mask(side_rank(turn, rank_7));
+        bitboard promote_west_tos = attack_west_tos & rank_mask(side_rank(turn, rank_8));
+        bitboard promote_west_froms = attack_west_froms & rank_mask(side_rank(turn, rank_7));;
 
         single_push_tos ^= promote_push_tos;
         single_push_froms ^= promote_push_froms;
@@ -287,8 +286,8 @@ public:
         // rook moves
         while(rooks)
         {
-            square from = bitboard_ls1b(rooks);
-            rooks = bitboard_reset(rooks, from);
+            square from = first_set_square(rooks);
+            rooks = unset_square(rooks, from);
             bitboard attacks = rook_attack_mask(from, occupied) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
@@ -296,8 +295,8 @@ public:
         // knight moves
         while(knights)
         {
-            square from = bitboard_ls1b(knights);
-            knights = bitboard_reset(knights, from);
+            square from = first_set_square(knights);
+            knights = unset_square(knights, from);
             bitboard attacks = knight_attack_mask(from) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
@@ -305,8 +304,8 @@ public:
         // bishop moves
         while(bishops)
         {
-            square from = bitboard_ls1b(bishops);
-            bishops = bitboard_reset(bishops, from);
+            square from = first_set_square(bishops);
+            bishops = unset_square(bishops, from);
             bitboard attacks = bishop_attack_mask(from, occupied) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
@@ -314,55 +313,56 @@ public:
         // queen moves
         while(queens)
         {
-            square from = bitboard_ls1b(queens);
-            queens = bitboard_reset(queens, from);
+            square from = first_set_square(queens);
+            queens = unset_square(queens, from);
             bitboard attacks = (rook_attack_mask(from, occupied) | bishop_attack_mask(from, occupied)) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
 
         // king moves
-        if(kingside_castle[player])
+        if(kingside_castle[turn])
         {
-            square from = bitboard_ls1b(kings);
-            square to = square_from_file_rank(file_g, square_rank(from));
+            square from = first_set_square(kings);
+            square to = cat_coords(file_g, rank_of(from));
             bitboard path = kings;
-            path |= bitboard_shift(kings, direction_e);
+            path |= bitboard_shift(path, direction_e);
             path |= bitboard_shift(path, direction_e);
             bitboard between = path & ~kings;
 
-            if(!(between & pieces.occupied_mask()) && !(path & pieces.attack_mask(opponent)))
+            if(!(between & occupied) && !(path & pieces.attack_mask(opponent(turn))))
             {
                 moves.emplace_back(from, to, piece_none);
             }
         }
-        if(queenside_castle[player])
+        if(queenside_castle[turn])
         {
-            square from = bitboard_ls1b(kings);
-            square to = square_from_file_rank(file_c, square_rank(from));
+            square from = first_set_square(kings);
+            square to = cat_coords(file_c, rank_of(from));
             bitboard path = kings;
             path |= bitboard_shift(path, direction_w);
             path |= bitboard_shift(path, direction_w);
             bitboard between = bitboard_shift(path, direction_w);
 
-            if(!(between & pieces.occupied_mask()) && !(path & pieces.attack_mask(opponent)))
+            if(!(between & occupied) && !(path & pieces.attack_mask(opponent(turn))))
             {
                 moves.emplace_back(from, to, piece_none);
             }
         }
         while(kings)
         {
-            square from = bitboard_ls1b(kings);
-            kings = bitboard_reset(kings, from);
+            square from = first_set_square(kings);
+            kings = unset_square(kings, from);
             bitboard attacks = king_attack_mask(from) & attack_mask;
             piecewise_moves(from, attacks, piece_none, moves);
         }
 
         // remove illegal moves
+        side player = turn;
         int n = 0;
         for(move& m: moves)
         {
             undo u = make_move(m);
-            if(!(pieces.attack_mask(opponent) & pieces.side_piece_mask(player, piece_king)))
+            if(!(pieces.attack_mask(opponent(player)) & pieces.side_piece_mask(player, piece_king)))
             {
                 moves[n++] = m;
             }
@@ -394,8 +394,8 @@ private:
     {
         while(tos)
         {
-            square to = bitboard_ls1b(tos);
-            tos = bitboard_reset(tos, to);
+            square to = first_set_square(tos);
+            tos = unset_square(tos, to);
             moves.emplace_back(from, to, promote);
         }
     }
@@ -404,10 +404,10 @@ private:
     {
         while(froms && tos)
         {
-            square from = bitboard_ls1b(froms);
-            square to = bitboard_ls1b(tos);
-            froms = bitboard_reset(froms, from);
-            tos = bitboard_reset(tos, to);
+            square from = first_set_square(froms);
+            square to = first_set_square(tos);
+            froms = unset_square(froms, from);
+            tos = unset_square(tos, to);
             moves.emplace_back(from, to, promote);
         }
     }

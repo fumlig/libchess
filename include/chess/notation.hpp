@@ -77,6 +77,7 @@ bool from_san(std::string_view san, side& side, piece& piece)
 }
 
 
+// Serializes piece type to Standard Algebraic Notation.
 std::string to_san(piece p)
 {
 	switch(p)
@@ -197,7 +198,7 @@ bool from_san(std::string_view san, square& sq)
 		return false;
 	}
 
-	sq = square_from_file_rank(f, r);
+	sq = cat_coords(f, r);
 
 	return true;
 }
@@ -253,7 +254,7 @@ bool from_fen(std::string_view fen, position& p)
 			return false;
 		}
 
-        square square = square_from_file_rank(static_cast<file>(f), static_cast<rank>(r));
+        square square = cat_coords(static_cast<file>(f), static_cast<rank>(r));
 
 		pieces[square] = {side, piece};
         

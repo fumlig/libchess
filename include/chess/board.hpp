@@ -57,15 +57,15 @@ public:
 
         if(s_prev != side_none && p_prev != piece_none)
         {
-            side_masks[s_prev] = bitboard_reset(side_masks[s_prev], sq);
-            piece_masks[p_prev] = bitboard_reset(piece_masks[p_prev], sq);
+            side_masks[s_prev] = unset_square(side_masks[s_prev], sq);
+            piece_masks[p_prev] = unset_square(piece_masks[p_prev], sq);
             zobrist_hash ^= pieces_zobrist_hash[sq][s_prev][p_prev];
         }
 
         if(s != side_none && p != piece_none)
         {
-            side_masks[s] = bitboard_set(side_masks[s], sq);
-            piece_masks[p] = bitboard_set(piece_masks[p], sq);
+            side_masks[s] = set_square(side_masks[s], sq);
+            piece_masks[p] = set_square(piece_masks[p], sq);
             zobrist_hash ^= pieces_zobrist_hash[sq][s][p];
         }
     }
@@ -101,7 +101,21 @@ public:
     }
 
     // todo: side_none and piece_none can be used here
-   
+ #if 0
+    inline bitboard mask(side s = side_none, piece p = piece_none)
+    {
+        // can this function also return pieces without squares in a clean manner?
+        if(s == side_none && p == piece_none)
+        {
+            return bitboard_empty;
+        }
+
+        bitboard side_mask = s == side_none ? bitboard_full : side_masks[s];
+        bitboard piece_mask = s == piece_none ? bitboard_full : side_masks[s];
+
+    }
+#endif
+
     inline bitboard side_mask(side s) const
     {
         return side_masks[s];
@@ -128,41 +142,41 @@ public:
 
         bitboard attacks = 0;
 
-        attacks |= bitboard_shift(pawns, static_cast<direction>(direction_forward(s) + direction_e));
-        attacks |= bitboard_shift(pawns, static_cast<direction>(direction_forward(s) + direction_w));
+        attacks |= bitboard_shift(pawns, static_cast<direction>(forwards(s) + direction_e));
+        attacks |= bitboard_shift(pawns, static_cast<direction>(forwards(s) + direction_w));
 
         while(rooks)
         {
-            square from = bitboard_ls1b(rooks);
-            rooks = bitboard_reset(rooks, from);
+            square from = first_set_square(rooks);
+            rooks = unset_square(rooks, from);
             attacks |= rook_attack_mask(from, occupied_mask());
         }
 
         while(knights)
         {
-            square from = bitboard_ls1b(knights);
-            knights = bitboard_reset(knights, from);
+            square from = first_set_square(knights);
+            knights = unset_square(knights, from);
             attacks |= knight_attack_mask(from);
         }
 
         while(bishops)
         {
-            square from = bitboard_ls1b(bishops);
-            bishops = bitboard_reset(bishops, from);
+            square from = first_set_square(bishops);
+            bishops = unset_square(bishops, from);
             attacks |= bishop_attack_mask(from, occupied_mask());
         }
 
         while(queens)
         {
-            square from = bitboard_ls1b(queens);
-            queens = bitboard_reset(queens, from);
+            square from = first_set_square(queens);
+            queens = unset_square(queens, from);
             attacks |= (rook_attack_mask(from, occupied_mask()) | bishop_attack_mask(from, occupied_mask()));
         }
 
         while(kings)
         {
-            square from = bitboard_ls1b(kings);
-            kings = bitboard_reset(kings, from);
+            square from = first_set_square(kings);
+            kings = unset_square(kings, from);
             attacks |= king_attack_mask(from);
         }
 
@@ -181,7 +195,7 @@ private:
     std::array<bitboard, sides> side_masks;
     std::array<bitboard, pieces> piece_masks;
 
-    std::size_t zobrist_hash{0};
+    std::size_t zobrist_hash;
 };
 
 

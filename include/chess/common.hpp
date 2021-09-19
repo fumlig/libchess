@@ -1,5 +1,5 @@
-#ifndef CHESS_TYPES_HPP
-#define CHESS_TYPES_HPP
+#ifndef CHESS_COMMON_HPP
+#define CHESS_COMMON_HPP
 
 
 #include <array>
@@ -15,13 +15,13 @@ const int sides = 2;
 
 enum side
 {
-    side_none   = -1,
-    side_white  = 0,
-    side_black  = 1,
+    side_white,
+    side_black,
+    side_none = -1,
 };
 
 
-constexpr side side_opposite(side s)
+constexpr side opponent(side s)
 {
     return static_cast<side>(!s);
 }
@@ -31,13 +31,13 @@ const int pieces = 6;
 
 enum piece
 {
-    piece_none      = -1,
-    piece_pawn      = 0,
-    piece_rook      = 1,
-    piece_knight    = 2,
-    piece_bishop    = 3,
-    piece_queen     = 4,
-    piece_king      = 5,
+    piece_pawn,
+    piece_rook,
+    piece_knight,
+    piece_bishop,
+    piece_queen,
+    piece_king,
+    piece_none = -1,
 };
 
 
@@ -73,24 +73,23 @@ enum square
 };
 
 
-
-constexpr rank rank_side(rank r, side s)
+constexpr rank side_rank(side s, rank r)
 {
-    return static_cast<rank>(r*static_cast<int>(side_opposite(s)) + (rank_8-r)*s);
+    return static_cast<rank>(r*static_cast<int>(opponent(s)) + (rank_8-r)*s);
 }
 
 
-constexpr file square_file(square sq)
+constexpr file file_of(square sq)
 {
     return static_cast<file>(sq % 8);
 }
 
-constexpr rank square_rank(square sq)
+constexpr rank rank_of(square sq)
 {
     return static_cast<rank>(sq / 8);
 }
 
-constexpr square square_from_file_rank(file f, rank r)
+constexpr square cat_coords(file f, rank r)
 {
     return static_cast<square>(r*8 + f);
 }
@@ -100,7 +99,7 @@ struct move
 {
     square from;
     square to;
-    piece promote;
+    piece promote{piece_none};
 };
 
 struct undo
@@ -138,12 +137,12 @@ enum direction
     direction_none  = 0,
 };
 
-constexpr direction direction_opposite(direction d)
+constexpr direction opposite(direction d)
 {
     return static_cast<direction>((d + 8) % 16);
 }
 
-constexpr direction direction_forward(side s)
+constexpr direction forwards(side s)
 {
     switch(s)
     {
@@ -181,26 +180,72 @@ constexpr bitboard rank_mask(rank r)
     return 0xFFULL << (r*8);
 }
 
-
-inline bool bitboard_get(bitboard bb, square sq)
+inline bool test_square(bitboard bb, square sq)
 {
     return bb & square_mask(sq);
 }
 
-inline bitboard bitboard_set(bitboard bb, square sq)
+inline bitboard set_square(bitboard bb, square sq)
 {
     return bb | square_mask(sq);
 }
 
-inline bitboard bitboard_toggle(bitboard bb, square sq)
+inline bitboard toggle_square(bitboard bb, square sq)
 {
     return bb ^ square_mask(sq);
 }
 
-inline bitboard bitboard_reset(bitboard bb, square sq)
+inline bitboard unset_square(bitboard bb, square sq)
 {
     return bb & ~square_mask(sq);
 }
+
+/*
+// used very often
+inline bitboard bitboard_shift(bitboard bb, direction d)
+{
+    if(d > 0)
+    {
+        bb <<= d;
+    }
+    else
+    {
+        bb >>= -d;
+    }
+
+    bitboard trim = bitboard_empty;
+
+    switch(d)
+    {
+    case direction_e:
+    case direction_ne:
+    case direction_se:
+    case direction_nne:
+    case direction_sse:
+        trim = file_mask(file_a);
+        break;
+    case direction_w:
+    case direction_nw:
+    case direction_sw:
+    case direction_nnw:
+    case direction_ssw:
+        trim = file_mask(file_h);
+        break;
+    case direction_ene:
+    case direction_ese:
+        trim = file_mask(file_a) | file_mask(file_b);
+        break;
+    case direction_wnw:
+    case direction_wsw:
+        trim = file_mask(file_g) | file_mask(file_h);
+        break;
+    default:
+        break;
+    }
+
+    return bb & ~trim;
+}
+*/
 
 
 inline bitboard bitboard_shift(bitboard bb, direction d)
@@ -247,6 +292,7 @@ inline bitboard bitboard_shift(bitboard bb, direction d)
     return bb;
 }
 
+// used often
 inline bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
 {
     bitboard shift = bb;
@@ -259,22 +305,20 @@ inline bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
     return ray;
 }
 
-
-inline square bitboard_ls1b(bitboard bb)
+inline square first_set_square(bitboard bb)
 {
     return static_cast<square>(std::countr_zero(bb));
 }
 
-inline square bitboard_ms1b(bitboard bb)
+inline square last_set_square(bitboard bb)
 {
     return static_cast<square>(square_h8 - std::countl_zero(bb));
 }
 
-inline int bitboard_count(bitboard bb)
+inline int count_set_squares(bitboard bb)
 {
     return std::popcount(bb);
 }
-
 
 
 struct magic
@@ -325,12 +369,12 @@ inline std::array<bitboard, squares> king_attacks;
 
 inline bitboard pawn_east_attack_mask(bitboard bb, side s)
 {
-    return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + direction_e));
+    return bitboard_shift(bb, static_cast<direction>(forwards(s) + direction_e));
 }
 
 inline bitboard pawn_west_attack_mask(bitboard bb, side s)
 {
-    return bitboard_shift(bb, static_cast<direction>(direction_forward(s) + direction_w));
+    return bitboard_shift(bb, static_cast<direction>(forwards(s) + direction_w));
 }
 
 inline bitboard rook_attack_mask(square sq, bitboard occupied)
@@ -395,8 +439,8 @@ void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const
         square sq = static_cast<square>(i);
 
         bitboard sq_bb = square_mask(sq);
-        bitboard edges = ((rank_mask(rank_1) | rank_mask(rank_8)) & ~rank_mask(square_rank(sq)))
-                       | ((file_mask(file_a) | file_mask(file_h)) & ~file_mask(square_file(sq)));
+        bitboard edges = ((rank_mask(rank_1) | rank_mask(rank_8)) & ~rank_mask(rank_of(sq)))
+                       | ((file_mask(file_a) | file_mask(file_h)) & ~file_mask(file_of(sq)));
 
         magics[sq].mask = bitboard_ray(sq_bb, directions[0], bitboard_empty)
                         | bitboard_ray(sq_bb, directions[1], bitboard_empty)
@@ -404,7 +448,7 @@ void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const
                         | bitboard_ray(sq_bb, directions[3], bitboard_empty);
         magics[sq].mask &= ~edges;
 
-        magics[sq].shift = squares - bitboard_count(magics[sq].mask);
+        magics[sq].shift = squares - count_set_squares(magics[sq].mask);
 
         // attack table of this square continues from the end of the last table
         magics[sq].attacks = sq == square_a1 ? attacks : magics[sq - 1].attacks + size;
@@ -439,7 +483,7 @@ void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const
             magics[sq].magic = 0;
 
             // randomize magic number
-            while(bitboard_count((magics[sq].magic * magics[sq].mask) >> 56) < 6) magics[sq].magic = random_sparse(seed);
+            while(count_set_squares((magics[sq].magic * magics[sq].mask) >> 56) < 6) magics[sq].magic = random_sparse(seed);
 
             // make sure magic number maps every possible occupancy to index
             // that looks up the correct sliding attack in attacks database

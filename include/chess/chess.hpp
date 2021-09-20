@@ -966,7 +966,8 @@ public:
 
     undo make_move(const move& m)
     {
-        undo u{pieces.get(m.to).second, en_passant, kingside_castle, queenside_castle};
+		piece capture = pieces.get(m.to).second;
+        undo u{capture, en_passant, kingside_castle, queenside_castle};
 
         auto [side, piece] = pieces.get(m.from);
         square ep = en_passant;
@@ -1048,7 +1049,7 @@ public:
             zobrist_hash ^= kingside_castle_zobrist_hash[side_black];
         }
 
-        halfmove_clock++; // todo: only if silent
+        halfmove_clock += (piece == piece_pawn || capture != piece_none);
         fullmove_number += turn;
         turn = opponent(turn);
         zobrist_hash ^= side_zobrist_hash;

@@ -64,7 +64,7 @@ unsigned long long perft(int depth, position* p)
         nodes += move_nodes;
     }
 
-    table.emplace(std::make_pair(hash, entry{nodes, depth}));
+    table.emplace(hash, entry{nodes, depth});
 
     return nodes;
 }

@@ -90,32 +90,6 @@ public:
     }
 
 
-    inline bitboard empty_mask() const
-    {
-        return ~(side_masks[side_white] | side_masks[side_black]);
-    }
-
-    inline bitboard occupied_mask() const
-    {
-        return side_masks[side_white] | side_masks[side_black];
-    }
-
-    // todo: side_none and piece_none can be used here
- #if 0
-    inline bitboard mask(side s = side_none, piece p = piece_none)
-    {
-        // can this function also return pieces without squares in a clean manner?
-        if(s == side_none && p == piece_none)
-        {
-            return bitboard_empty;
-        }
-
-        bitboard side_mask = s == side_none ? bitboard_full : side_masks[s];
-        bitboard piece_mask = s == piece_none ? bitboard_full : side_masks[s];
-
-    }
-#endif
-
     inline bitboard side_mask(side s) const
     {
         return side_masks[s];
@@ -130,6 +104,17 @@ public:
     {
         return side_masks[s] & piece_masks[p];
     }
+
+    inline bitboard empty_mask() const
+    {
+        return ~(side_masks[side_white] | side_masks[side_black]);
+    }
+
+    inline bitboard occupied_mask() const
+    {
+        return side_masks[side_white] | side_masks[side_black];
+    }
+
 
     bitboard attack_mask(side s) const
     {

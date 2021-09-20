@@ -3,4 +3,4 @@
 mkdir -p build
 
 # test
-g++ -std=c++20 test/perft.cpp -o build/perft -Iinclude -g -O3
+clang++ -std=c++20 test/perft.cpp -o build/perft -Iinclude -Wall -Wpedantic -g -O3

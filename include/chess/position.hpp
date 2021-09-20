@@ -331,7 +331,7 @@ public:
 
             if(!(between & occupied) && !(path & pieces.attack_mask(opponent(turn))))
             {
-                moves.emplace_back(from, to, piece_none);
+                moves.push_back({from, to, piece_none});
             }
         }
         if(queenside_castle[turn])
@@ -345,7 +345,7 @@ public:
 
             if(!(between & occupied) && !(path & pieces.attack_mask(opponent(turn))))
             {
-                moves.emplace_back(from, to, piece_none);
+                moves.push_back({from, to, piece_none});
             }
         }
         while(kings)
@@ -389,6 +389,12 @@ public:
         return zobrist_hash ^ pieces.hash();
     }
 
+    // Is the current turn in check?
+    inline bool is_check() const
+    {
+        return pieces.attack_mask(opponent(turn)) & pieces.side_piece_mask(turn, piece_king);
+    }
+
 private:
     inline void piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves)
     {
@@ -396,7 +402,7 @@ private:
         {
             square to = first_set_square(tos);
             tos = unset_square(tos, to);
-            moves.emplace_back(from, to, promote);
+            moves.push_back({from, to, promote});
         }
     }
 
@@ -408,7 +414,7 @@ private:
             square to = first_set_square(tos);
             froms = unset_square(froms, from);
             tos = unset_square(tos, to);
-            moves.emplace_back(from, to, promote);
+            moves.push_back({from, to, promote});
         }
     }
 

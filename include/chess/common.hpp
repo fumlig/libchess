@@ -200,7 +200,6 @@ inline bitboard unset_square(bitboard bb, square sq)
     return bb & ~square_mask(sq);
 }
 
-/*
 // used very often
 inline bitboard bitboard_shift(bitboard bb, direction d)
 {
@@ -245,52 +244,7 @@ inline bitboard bitboard_shift(bitboard bb, direction d)
 
     return bb & ~trim;
 }
-*/
 
-
-inline bitboard bitboard_shift(bitboard bb, direction d)
-{
-    if(d > 0)
-    {
-        bb <<= d;
-    }
-    else
-    {
-        bb >>= -d;
-    }
-
-    switch(d)
-    {
-    case direction_e:
-    case direction_ne:
-    case direction_se:
-    case direction_nne:
-    case direction_sse:
-        bb &= ~file_mask(file_a);
-        break;
-    case direction_w:
-    case direction_nw:
-    case direction_sw:
-    case direction_nnw:
-    case direction_ssw:
-        bb &= ~file_mask(file_h);
-        break;
-    case direction_ene:
-    case direction_ese:
-        bb &= ~(file_mask(file_a) | file_mask(file_b));
-        break;
-    case direction_wnw:
-    case direction_wsw:
-        bb &= ~(file_mask(file_g) | file_mask(file_h));
-        break;
-    case direction_n:
-    case direction_s:
-    case direction_none:
-    default:
-        break;
-    }
-    return bb;
-}
 
 // used often
 inline bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)

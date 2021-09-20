@@ -27,5 +27,8 @@ int main()
 		p.make_move(move);
 	}
 
+	// print final fen
+	std::cout << p.to_fen() << std::endl;
+
 	return 0;
 }

@@ -97,16 +97,22 @@ char piece_to_san(side s, piece p)
 	{
 	case piece_pawn:
 		c = 'P';
+		break;
 	case piece_rook:
 		c = 'R';
+		break;
 	case piece_knight:
-		return 'N';
+		c = 'N';
+		break;
 	case piece_bishop:
-		return 'B';
+		c = 'B';
+		break;
 	case piece_queen:
-		return 'Q';
+		c = 'Q';
+		break;
 	case piece_king:
-		return 'K';
+		c = 'K';
+		break;
 	case piece_none:
 	default:
 		throw std::invalid_argument("no piece, no san");
@@ -961,6 +967,58 @@ public:
 			halfmove_clock,
 			fullmove_number
 		);
+	}
+
+
+	std::string to_fen() const
+	{
+		std::ostringstream fen_stream;
+
+	    for(int r = rank_8; r >= rank_1; r--)
+	    {
+	        int empty = 0;
+	        for(int f = file_a; f <= file_h; f++)
+	        {
+	            square sq = cat_coords(static_cast<file>(f), static_cast<rank>(r));
+				auto[s, p] = pieces.get(sq);
+
+	            if(p == piece_none)
+	            {
+	                empty++;
+	                continue;
+	            }
+	            else if(empty != 0)
+	            {
+					fen_stream << '0' + empty;
+	                empty = 0;
+	            }
+
+				fen_stream << piece_to_san(s, p);
+	        }
+
+	        if(empty != 0)
+			{
+				fen_stream << '0' + empty;
+			}
+	        if(r != rank_1)
+			{
+				fen_stream << '/';
+			}
+		}
+	    
+		fen_stream << (turn == side_white ? " w " : " b ");
+
+		auto pos = fen_stream.tellp();
+
+	    if(kingside_castle[side_white])		fen_stream << 'K';
+	    if(queenside_castle[side_white]) 	fen_stream << 'Q';
+	    if(kingside_castle[side_black]) 	fen_stream << 'k';
+	    if(queenside_castle[side_black]) 	fen_stream << 'q';
+	    if(pos == fen_stream.tellp()) 		fen_stream << '-';
+
+		fen_stream << ' ' << square_to_san(en_passant) << ' ' << halfmove_clock << ' ' << fullmove_number;
+
+		return fen_stream.str();
 	}
 
 

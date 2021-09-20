@@ -8,24 +8,41 @@ Chess library with move generation and various utilities, for C++20.
 #include <chess/chess.hpp>
 
 
-using namespace chess;
-
-
 int main()
 {
+	// initialize chess library
+	chess::init();
+
 	// create start position
-	position start_position;
-	from_fen(fen_start, p1);
+	chess::position p;
+	from_fen(fen_start, p);
 
 	// get legal moves
-	std::vector<move> moves = p1.moves();
+	std::vector<move> moves = p.moves();
 
-	// make move
-	
-	p1.make_move({square_a2, square_a4});
-
-
+	// make move a2a4
+	p.make_move({square_a2, square_a4});
 
 	return 0;
 }
 ```
+
+## perft
+
+A method for debugging and measuring the speed of move generation is recursively counting the number of legal moves to a certain depth in the move tree, starting at a certain position.
+
+```bash
+# build perft
+./build.sh
+
+# show usage and list positions with known results
+./build/perft
+
+# run perft with depth 5 on start position
+./build/perft startpos 5
+
+# time perft on start position with depth 7 (should not take more than a minute on a decent computer)
+time ./build/perft startpos 7
+```
+
+If the traversal is too slow you could try increasing the table key size, but this might eat up your memory!

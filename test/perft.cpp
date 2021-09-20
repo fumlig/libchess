@@ -12,6 +12,7 @@ using namespace chess;
 
 struct entry
 {
+    std::size_t hash;
     unsigned long long nodes;
     int depth;
 };
@@ -22,14 +23,12 @@ struct result
     std::vector<unsigned long long> nodes;
 };
 
-struct profile
-{
-    unsigned int hits{0};
-};
-
 
 static std::unordered_map<std::size_t, entry> table;
-static profile stats;
+static const size_t table_key_size = 24;
+static const size_t table_hash_mask = (1ULL << table_key_size) - 1;
+unsigned int        table_hits{0};
+
 static std::unordered_map<std::string, result> results
 {
     {"startpos", {std::string(fen_start), {1, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860, 84998978956, 2439530234167, 69352859712417}}},
@@ -41,30 +40,41 @@ static std::unordered_map<std::string, result> results
 };
 
 
-unsigned long long perft(int depth, position* p)
+unsigned long long perft(int depth, position& p, bool divide = false)
 {
     if(depth == 0) return 1;
 
-    std::size_t hash = p->hash();
+    std::size_t hash = p.hash();
+    std::size_t key = hash & table_hash_mask;
     
-    if(table.find(hash) != table.end() && table.at(hash).depth == depth)
+    if(table.find(key) != table.end() && table.at(key).hash == hash && table.at(key).depth == depth)
     {
-        stats.hits++;
-        return table.at(hash).nodes;
+        table_hits++;
+        return table.at(key).nodes;
     }
 
     unsigned long long nodes = 0;
 
-    for(move& move: p->moves())
+    for(move& move: p.moves())
     {
-        undo undo = p->make_move(move);
+        position tmp = p;
+        tmp.make_move(move);
+        unsigned long long move_nodes = perft(depth - 1, tmp);
+#if 0
+        undo undo = p.make_move(move);
         unsigned long long move_nodes = perft(depth - 1, p);
-        p->undo_move(move, undo);
+        p.undo_move(move, undo);
+#endif
 
         nodes += move_nodes;
+        
+        if(divide)
+        {
+            std::cout << move_nodes << std::endl;
+        }
     }
 
-    table.emplace(hash, entry{nodes, depth});
+    table.emplace(key, entry{hash, nodes, depth});
 
     return nodes;
 }
@@ -110,14 +120,14 @@ int main(int argc, char* argv[])
     }
     
     auto begin = std::chrono::steady_clock::now();
-    unsigned long long nodes = perft(depth, &p);
+    unsigned long long nodes = perft(depth, p, true);
     auto end = std::chrono::steady_clock::now();
 
     std::chrono::duration<double> time = end - begin;
 
     double nps = (1e9*nodes) / time.count();
 
-    std::cout << "time: " << time.count() << " s (" << nps << " nps, " << stats.hits << " hits)" << std::endl;
+    std::cout << "time: " << time.count() << " s (" << nps << " nps, " << table_hits << " hits)" << std::endl;
     std::cout << "total: " << nodes << std::endl;
 
     if(depth < answer.nodes.size())

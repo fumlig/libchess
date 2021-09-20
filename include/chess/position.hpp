@@ -374,26 +374,36 @@ public:
         return moves;
     }
 
-    inline int fullmove() const
+    int fullmove() const
     {
         return fullmove_number;
     }
 
-    inline int halfmove() const
+    int halfmove() const
     {
         return (fullmove_number - 1)*2 + turn;
     }
 
-    inline std::size_t hash() const
+    std::size_t hash() const
     {
         return zobrist_hash ^ pieces.hash();
     }
 
-    // Is the current turn in check?
-    inline bool is_check() const
+    bool is_check() const
     {
         return pieces.attack_mask(opponent(turn)) & pieces.side_piece_mask(turn, piece_king);
     }
+
+    bool is_checkmate()
+    {
+        return is_check() && moves().empty();
+    }
+
+    bool is_stalemate()
+    {
+        return !is_check() && moves().empty();
+    }
+
 
 private:
     inline void piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves)

@@ -31,7 +31,7 @@ unsigned int        table_hits{0};
 
 static std::unordered_map<std::string, result> results
 {
-    {"startpos", {std::string(fen_start), {1, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860, 84998978956, 2439530234167, 69352859712417}}},
+    {"startpos", {std::string(position::fen_start), {1, 20, 400, 8902, 197281, 4865609, 119060324, 3195901860, 84998978956, 2439530234167, 69352859712417}}},
     {"p2", {"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", {1, 48, 2039, 97862, 4085603, 193690690, 8031647685}}},
     {"p3", {"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1", {1, 14, 191, 2812, 43238, 674624, 11030083, 178633661, 3009794393}}},
     {"p4", {"r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1", {1, 6, 264, 9467, 422333, 15833292, 706045033}}},
@@ -57,20 +57,15 @@ unsigned long long perft(int depth, position& p, bool divide = false)
 
     for(move& move: p.moves())
     {
-        position tmp = p;
-        tmp.make_move(move);
-        unsigned long long move_nodes = perft(depth - 1, tmp);
-#if 0
         undo undo = p.make_move(move);
         unsigned long long move_nodes = perft(depth - 1, p);
         p.undo_move(move, undo);
-#endif
 
         nodes += move_nodes;
         
         if(divide)
         {
-            std::cout << move_nodes << std::endl;
+            std::cout << move.to_lan() << ": " << move_nodes << std::endl;
         }
     }
 
@@ -111,13 +106,7 @@ int main(int argc, char* argv[])
     int depth = std::stoi(argv[2]);
 
     result answer = results.find(fen) != results.end() ? results.at(fen) : result{fen, {}};
-
-    position p;
-    if(!from_fen(answer.fen, p))
-    {
-        std::cout << "invalid fen" << std::endl;
-        return -1;
-    }
+    position p = position::from_fen(answer.fen);
     
     auto begin = std::chrono::steady_clock::now();
     unsigned long long nodes = perft(depth, p, true);

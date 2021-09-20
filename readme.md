@@ -14,14 +14,13 @@ int main()
 	chess::init();
 
 	// create start position
-	chess::position p;
-	from_fen(fen_start, p);
+	chess::position p = position::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // fen also declared as position::fen_start
 
 	// get legal moves
 	std::vector<move> moves = p.moves();
 
 	// make move a2a4
-	p.make_move({square_a2, square_a4});
+	p.make_move(move::from_lan());
 
 	return 0;
 }
@@ -40,9 +39,6 @@ A method for debugging and measuring the speed of move generation is recursively
 
 # run perft with depth 5 on start position
 ./build/perft startpos 5
-
-# time perft on start position with depth 7 (should not take more than a minute on a decent computer)
-time ./build/perft startpos 7
 ```
 
 If the traversal is too slow you could try increasing the table key size, but this might eat up your memory!

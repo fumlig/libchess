@@ -7,8 +7,10 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -19,8 +21,6 @@ namespace chess
 {
 
 
-const int sides = 2;
-
 enum side
 {
     side_white,
@@ -28,14 +28,14 @@ enum side
     side_none = -1,
 };
 
+const int sides = 2;
+
 
 constexpr side opponent(side s)
 {
     return static_cast<side>(!s);
 }
 
-
-const int pieces = 6;
 
 enum piece
 {
@@ -48,24 +48,94 @@ enum piece
     piece_none = -1,
 };
 
+const int pieces = 6;
 
-const int files = 8;
+
+std::pair<side, piece> piece_from_san(char san)
+{
+	side s = side_white;
+	piece p = piece_none;
+
+	if(std::islower(san))
+	{
+		s = side_black;
+		san = std::toupper(san);
+	}
+
+    switch(san)
+    {
+    case 'P':
+		p = piece_pawn;
+		break;
+    case 'R':
+        p = piece_rook;
+		break;
+    case 'N':
+        p = piece_knight;
+		break;
+    case 'B':
+        p = piece_bishop;
+		break;
+    case 'Q':
+        p = piece_queen;
+		break;
+    case 'K':
+        p = piece_king;
+		break;
+    default:
+		throw std::invalid_argument("san does not denote a piece");
+    }
+
+	return {s, p};
+}
+
+char piece_to_san(side s, piece p)
+{
+	char c;
+
+	switch(p)
+	{
+	case piece_pawn:
+		c = 'P';
+	case piece_rook:
+		c = 'R';
+	case piece_knight:
+		return 'N';
+	case piece_bishop:
+		return 'B';
+	case piece_queen:
+		return 'Q';
+	case piece_king:
+		return 'K';
+	case piece_none:
+	default:
+		throw std::invalid_argument("no piece, no san");
+	}
+
+	if(s == side_black)
+	{
+		c = std::tolower(c);
+	}
+
+	return c;
+}
+
 
 enum file
 {
     file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h
 };
 
+const int files = 8;
 
-const int ranks = 8;
 
 enum rank
 {
     rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8
 };
 
+const int ranks = 8;
 
-const int squares = 64;
 
 enum square
 {
@@ -80,12 +150,13 @@ enum square
     square_none = -1,
 };
 
+const int squares = 64;
+
 
 constexpr rank side_rank(side s, rank r)
 {
     return static_cast<rank>(r*static_cast<int>(opponent(s)) + (rank_8-r)*s);
 }
-
 
 constexpr file file_of(square sq)
 {
@@ -103,20 +174,67 @@ constexpr square cat_coords(file f, rank r)
 }
 
 
-struct move
+file file_from_san(char san)
 {
-    square from;
-    square to;
-    piece promote{piece_none};
-};
+	if(san < 'a' || san > 'h')
+	{
+		throw std::invalid_argument("san does not denote a file");
+	}
 
-struct undo
+	return static_cast<file>(san - 'a');
+}
+
+
+rank rank_from_san(char san)
 {
-    piece capture;
-    square en_passant;
-    std::array<bool, sides> kingside_castle;
-    std::array<bool, sides> queenside_castle;
-};
+	if(san < '1' || san > '8')
+	{
+		throw std::invalid_argument("san does not denote a file");
+	}
+
+	return static_cast<rank>(san - '1');
+}
+
+
+square square_from_san(std::string_view san)
+{
+	if(san == "-")
+	{
+		return square_none;
+	}
+
+	if(san.length() != 2)
+	{
+		throw std::invalid_argument("san for square is of wrong length");
+	}
+
+	return cat_coords(file_from_san(san[0]), rank_from_san(san[1]));
+}
+
+
+char file_to_san(file f)
+{
+	return static_cast<file>('a' + f);
+}
+
+char rank_to_san(rank r)
+{
+	return static_cast<rank>('1' + r);
+}
+
+
+std::string square_to_san(square sq)
+{
+	if(sq == square_none)
+	{
+		return "-";
+	}
+
+	return {file_to_san(file_of(sq)), rank_to_san(rank_of(sq))};
+}
+
+
+
 
 
 const int directions = 16;
@@ -165,13 +283,10 @@ constexpr direction forwards(side s)
 }
 
 
-
 using bitboard = std::uint64_t;
-
 
 const bitboard bitboard_empty = 0ULL;
 const bitboard bitboard_full = ~0ULL;
-
 
 constexpr bitboard square_mask(square sq)
 {
@@ -254,7 +369,6 @@ inline bitboard bitboard_shift(bitboard bb, direction d)
 }
 
 
-// used often
 inline bitboard bitboard_ray(bitboard bb, direction d, bitboard occupied)
 {
     bitboard shift = bb;
@@ -467,44 +581,6 @@ void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const
 }
 
 
-void init(std::size_t seed = 2147483647ULL)
-{
-	const std::array<direction, 4> rook_directions{direction_n, direction_e, direction_s, direction_w};
-	const std::array<direction, 4> bishop_directions{direction_ne, direction_se, direction_sw, direction_nw};
-	const std::array<direction, 8> knight_directions{direction_nne, direction_ene, direction_ese, direction_sse, direction_ssw, direction_wsw, direction_wnw, direction_nnw};
-	const std::array<direction, 8> king_directions{direction_n, direction_ne, direction_e, direction_se, direction_s, direction_sw, direction_w, direction_nw};
-
-    ray_table_init(rook_attacks.data(), rook_magics, rook_directions, seed);
-    ray_table_init(bishop_attacks.data(), bishop_magics, bishop_directions, seed);
-    shift_table_init(knight_attacks.data(), knight_directions);
-    shift_table_init(king_attacks.data(), king_directions);
-
-    for(int i = square_a1; i <= square_h8; i++)
-    {
-        for(int j = piece_pawn; j <= piece_king; j++)
-        {
-            square sq = static_cast<square>(i);
-            piece p = static_cast<piece>(j);
-
-            pieces_zobrist_hash[sq][side_white][p] = random_generate(seed);
-            pieces_zobrist_hash[sq][side_black][p] = random_generate(seed);
-        }
-    }
-
-    side_zobrist_hash = random_generate(seed);
-
-    kingside_castle_zobrist_hash[side_white] = random_generate(seed);
-    kingside_castle_zobrist_hash[side_black] = random_generate(seed);
-    queenside_castle_zobrist_hash[side_white] = random_generate(seed);
-    queenside_castle_zobrist_hash[side_black] = random_generate(seed);
-
-    for(int f = file_a; f <= file_h; f++)
-    {
-        en_passant_zobrist_hash[f] = random_generate(seed);
-    }
-}
-
-
 class board
 {
 public:
@@ -673,7 +749,55 @@ private:
 };
 
 
+struct move
+{
+	// Null-move
+	move():
+	from{square_none},
+	to{square_none},
+	promote{piece_none}
+	{}
 
+	move(square from, square to, piece promote = piece_none):
+	from{from},
+	to{to},
+	promote{promote}
+	{}
+
+	// todo: implement
+	/*
+	static move from_san(std::string_view san, const position& p)
+	{
+
+	}
+	*/
+
+	static move from_lan(std::string_view lan)
+	{
+		square from = square_from_san(lan.substr(0, 2));
+		square to = square_from_san(lan.substr(2, 2));
+		piece promote = lan.length() == 5 ? piece_from_san(lan.back()).second : piece_none;
+
+		return move(from, to, promote);
+	}
+
+	std::string to_lan() const
+	{
+		return square_to_san(from) + square_to_san(to) + (promote != piece_none ? std::to_string(piece_to_san(side_none, promote)) : "");
+	}
+
+    square from;
+    square to;
+    piece promote;
+};
+
+struct undo
+{
+    piece capture;
+    square en_passant;
+    std::array<bool, sides> kingside_castle;
+    std::array<bool, sides> queenside_castle;
+};
 
 
 class position
@@ -718,6 +842,127 @@ public:
         if(queenside_castle[side_black])    zobrist_hash ^= queenside_castle_zobrist_hash[side_black];
         if(en_passant != square_none)       zobrist_hash ^= en_passant_zobrist_hash[file_of(en_passant)];
     }
+
+
+	static const inline std::string_view fen_start = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	static const inline std::string_view fen_empty = "8/8/8/8/8/8/8/8 w - - 0 1";
+
+
+	static position from_fen(std::string_view fen)
+	{
+		std::string fen_string(fen);
+		std::istringstream fen_stream(fen_string);
+
+		std::string pieces_string, turn_string, castle_string, en_passant_string;
+		int halfmove_clock, fullmove_number;
+
+		if(!(fen_stream >> pieces_string >> turn_string >> castle_string >> en_passant_string >> halfmove_clock >> fullmove_number))
+		{
+			throw std::invalid_argument("fen does not contain 7 fields");
+		}
+
+		// pieces
+		std::unordered_map<square, std::pair<side, piece>> pieces;
+		int r = rank_8;
+	    int f = file_a;
+
+	    for(char c : pieces_string)
+	    {
+	        if(c == '/')
+	        {
+	            r--;
+	            f = file_a;
+	            continue;
+	        }
+
+	        if('1' <= c && c <= '8')
+	        {
+	            f += c - '0';
+	            continue;
+	        }
+
+			if(!(file_a <= f && f <= file_h) || !(rank_1 <= r && r <= rank_8))
+			{
+				throw std::invalid_argument("fen contains ill-formed piece placement field");
+			}
+
+			pieces[cat_coords(static_cast<file>(f), static_cast<rank>(r))] = piece_from_san(c);
+	        
+			f++;
+	    }
+
+		// turn
+		side turn = side_none;
+
+		if(turn_string.length() != 1)
+		{
+			throw std::invalid_argument("fen contains ill-formed piece turn field");
+		}
+
+		if(turn_string.front() == 'w')
+		{
+			turn = side_white;
+		}
+		else if(turn_string.front() == 'b')
+		{
+			turn = side_black;
+		}
+		else
+		{
+			throw std::invalid_argument("fen contains ill-formed piece turn field");
+		}
+
+		// castle
+		bool white_kingside_castle = false;
+		bool white_queenside_castle = false;
+		bool black_kingside_castle = false;
+		bool black_queenside_castle = false;
+
+	    for(char c : castle_string)
+	    {
+	        switch(c)
+	        {
+	        case 'K':
+	            white_kingside_castle = true;
+	            break;
+	        case 'Q':
+	            white_queenside_castle = true;
+	            break;
+	        case 'k':
+	            black_kingside_castle = true;
+	            break;
+	        case 'q':
+	            black_queenside_castle = true;
+	            break;
+	        case '-':
+				break;
+	        default:
+				throw std::invalid_argument("fen contains ill-formed castling availability field");
+	        }
+	    }
+
+	    // en passant
+		square en_passant = square_none;
+
+	    if(en_passant_string != "-")
+	    {
+			en_passant = square_from_san(en_passant_string);
+	    }
+
+		return position
+		(
+			board(pieces),
+			turn,
+			white_kingside_castle,
+			white_queenside_castle,
+			black_kingside_castle,
+			black_queenside_castle,
+			en_passant,
+			halfmove_clock,
+			fullmove_number
+		);
+	}
+
 
     undo make_move(const move& m)
     {
@@ -1000,7 +1245,7 @@ public:
 
             if(!(between & occupied) && !(path & pieces.attack_mask(opponent(turn))))
             {
-                moves.push_back({from, to, piece_none});
+                moves.emplace_back(from, to, piece_none);
             }
         }
         if(queenside_castle[turn])
@@ -1014,7 +1259,7 @@ public:
 
             if(!(between & occupied) && !(path & pieces.attack_mask(opponent(turn))))
             {
-                moves.push_back({from, to, piece_none});
+                moves.emplace_back(from, to, piece_none);
             }
         }
         while(kings)
@@ -1081,7 +1326,7 @@ private:
         {
             square to = first_set_square(tos);
             tos = unset_square(tos, to);
-            moves.push_back({from, to, promote});
+            moves.emplace_back(from, to, promote);
         }
     }
 
@@ -1093,7 +1338,7 @@ private:
             square to = first_set_square(tos);
             froms = unset_square(froms, from);
             tos = unset_square(tos, to);
-            moves.push_back({from, to, promote});
+            moves.emplace_back(from, to, promote);
         }
     }
 
@@ -1108,327 +1353,41 @@ private:
 };
 
 
-
-bool from_san(std::string_view san, piece& p)
+void init(std::size_t seed = 2147483647ULL)
 {
-	if(san.length() != 1)
-	{
-		return false;
-	}
+	const std::array<direction, 4> rook_directions{direction_n, direction_e, direction_s, direction_w};
+	const std::array<direction, 4> bishop_directions{direction_ne, direction_se, direction_sw, direction_nw};
+	const std::array<direction, 8> knight_directions{direction_nne, direction_ene, direction_ese, direction_sse, direction_ssw, direction_wsw, direction_wnw, direction_nnw};
+	const std::array<direction, 8> king_directions{direction_n, direction_ne, direction_e, direction_se, direction_s, direction_sw, direction_w, direction_nw};
 
-    switch(san.front())
+    ray_table_init(rook_attacks.data(), rook_magics, rook_directions, seed);
+    ray_table_init(bishop_attacks.data(), bishop_magics, bishop_directions, seed);
+    shift_table_init(knight_attacks.data(), knight_directions);
+    shift_table_init(king_attacks.data(), king_directions);
+
+    for(int i = square_a1; i <= square_h8; i++)
     {
-    case 'P':
-	case 'p':
-		p = piece_pawn;
-		break;
-    case 'R':
-	case 'r':
-        p = piece_rook;
-		break;
-    case 'N':
-	case 'n':
-        p = piece_knight;
-		break;
-    case 'B':
-	case 'b':
-        p = piece_bishop;
-		break;
-    case 'Q':
-	case 'q':
-        p = piece_queen;
-		break;
-    case 'K':
-	case 'k':
-        p = piece_king;
-		break;
-    default:
-		return false;
-    }
-
-	return true;
-}
-
-bool from_san(std::string_view san, side& side, piece& piece)
-{
-	if(san.length() != 1)
-	{
-		return false;
-	}
-
-	if(std::isupper(san.front()))
-	{
-		side = side_white;
-	}
-	else
-	{
-		side = side_black;
-	}
-
-	return from_san(san, piece);
-}
-
-
-// Serializes piece type to Standard Algebraic Notation.
-std::string to_san(piece p)
-{
-	switch(p)
-	{
-	case piece_pawn:
-		return "P";
-	case piece_rook:
-		return "R";
-	case piece_knight:
-		return "N";
-	case piece_bishop:
-		return "B";
-	case piece_queen:
-		return "Q";
-	case piece_king:
-		return "K";
-	case piece_none:
-	default:
-		return "?";
-	}
-}
-
-
-bool from_san(std::string_view san, file& f)
-{
-	if(san.length() != 1)
-	{
-		return false;
-	}
-
-	switch(san.front())
-	{
-	case 'a':
-		f = file_a;
-		break;
-	case 'b':
-		f = file_b;
-		break;
-	case 'c':
-		f = file_c;
-		break;
-	case 'd':
-		f = file_d;
-		break;
-	case 'e':
-		f = file_e;
-		break;
-	case 'f':
-		f = file_f;
-		break;
-	case 'g':
-		f = file_g;
-		break;
-	case 'h':
-		f = file_h;
-		break;
-	default:
-		return false;
-	}
-
-	return true;
-}
-
-
-bool from_san(std::string_view san, rank& r)
-{
-	if(san.length() != 1)
-	{
-		return false;
-	}
-
-	switch(san.front())
-	{
-	case '1':
-		r = rank_1;
-		break;
-	case '2':
-		r = rank_2;
-		break;
-	case '3':
-		r = rank_3;
-		break;
-	case '4':
-		r = rank_4;
-		break;
-	case '5':
-		r = rank_5;
-		break;
-	case '6':
-		r = rank_6;
-		break;
-	case '7':
-		r = rank_7;
-		break;
-	case '8':
-		r = rank_8;
-		break;
-	default:
-		return false;
-	}
-
-	return true;
-}
-
-
-bool from_san(std::string_view san, square& sq)
-{
-	if(san.length() != 2)
-	{
-		return false;
-	}
-
-	file f;
-	rank r;
-
-	if(!from_san(san.substr(0, 1), f) || !from_san(san.substr(1, 1), r))
-	{
-		return false;
-	}
-
-	sq = cat_coords(f, r);
-
-	return true;
-}
-
-
-
-const std::string_view fen_start = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const std::string_view fen_empty = "8/8/8/8/8/8/8/8 w - - 0 1";
-
-bool from_fen(std::string_view fen, position& p)
-{
-	std::string fen_string(fen);
-	std::istringstream fen_stream(fen_string);
-
-	std::string pieces_string, turn_string, castle_string, en_passant_string;
-	int halfmove_clock, fullmove_number;
-
-	if(!(fen_stream >> pieces_string >> turn_string >> castle_string >> en_passant_string >> halfmove_clock >> fullmove_number))
-	{
-		return false;
-	}
-
-	// pieces
-	std::unordered_map<square, std::pair<side, piece>> pieces;
-	int r = rank_8;
-    int f = file_a;
-
-    for(char c : pieces_string)
-    {
-        if(c == '/')
+        for(int j = piece_pawn; j <= piece_king; j++)
         {
-            r--;
-            f = file_a;
-            continue;
-        }
+            square sq = static_cast<square>(i);
+            piece p = static_cast<piece>(j);
 
-        if('1' <= c && c <= '8')
-        {
-            f += c - '0';
-            continue;
-        }
-
-        side side;
-        piece piece;
-		
-		if(!from_san(std::string{c}, side, piece))
-		{
-			return false;
-		}
-
-		if(!(file_a <= f && f <= file_h) || !(rank_1 <= r && r <= rank_8))
-		{
-			return false;
-		}
-
-        square square = cat_coords(static_cast<file>(f), static_cast<rank>(r));
-
-		pieces[square] = {side, piece};
-        
-		f++;
-    }
-
-	// turn
-	side turn = side_none;
-
-	if(turn_string.length() != 1)
-	{
-		return false;
-	}
-
-	if(turn_string.front() == 'w')
-	{
-		turn = side_white;
-	}
-	else if(turn_string.front() == 'b')
-	{
-		turn = side_black;
-	}
-	else
-	{
-		return false;
-	}
-
-	// castle
-	bool white_kingside_castle = false;
-	bool white_queenside_castle = false;
-	bool black_kingside_castle = false;
-	bool black_queenside_castle = false;
-
-    for(char c : castle_string)
-    {
-        switch(c)
-        {
-        case 'K':
-            white_kingside_castle = true;
-            break;
-        case 'Q':
-            white_queenside_castle = true;
-            break;
-        case 'k':
-            black_kingside_castle = true;
-            break;
-        case 'q':
-            black_queenside_castle = true;
-            break;
-        case '-':
-			break;
-        default:
-			return false;
+            pieces_zobrist_hash[sq][side_white][p] = random_generate(seed);
+            pieces_zobrist_hash[sq][side_black][p] = random_generate(seed);
         }
     }
 
-    // en passant
-	square en_passant;
+    side_zobrist_hash = random_generate(seed);
 
-    if(en_passant_string == "-")
+    kingside_castle_zobrist_hash[side_white] = random_generate(seed);
+    kingside_castle_zobrist_hash[side_black] = random_generate(seed);
+    queenside_castle_zobrist_hash[side_white] = random_generate(seed);
+    queenside_castle_zobrist_hash[side_black] = random_generate(seed);
+
+    for(int f = file_a; f <= file_h; f++)
     {
-        en_passant = square_none;
+        en_passant_zobrist_hash[f] = random_generate(seed);
     }
-    else if(!from_san(en_passant_string, en_passant))
-	{
-		return false;
-	}
-
-	p = position
-	(
-		board(pieces),
-		turn,
-		white_kingside_castle,
-		white_queenside_castle,
-		black_kingside_castle,
-		black_queenside_castle,
-		en_passant,
-		halfmove_clock,
-		fullmove_number
-	);
-
-	return true;
 }
 
 

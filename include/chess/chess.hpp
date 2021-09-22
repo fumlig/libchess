@@ -650,9 +650,10 @@ inline std::vector<square> set_elements(bitboard bb)
 
 
 
-/// Magic table entry.
-///
-/// This is used for fast generation of sliding piece attacks.
+// Magic table entry.
+//
+// Internal struct.
+// This is used for fast generation of sliding piece attacks.
 struct magic
 {
     bitboard mask;
@@ -661,18 +662,20 @@ struct magic
     unsigned shift;
 };
 
-/// Magic index.
-///
-/// Index of attacks in a pregenerated attack table for certain occupancy masks.
+// Magic index.
+//
+// Internal function.
+// Index of attacks in a pregenerated attack table for certain occupancy masks.
 inline unsigned magic_index(const magic& m, bitboard occupied)
 {
     return ((occupied & m.mask) * m.magic) >> m.shift;
 }
 
 
-/// Pseudorandom number generation given a seed.
-///
-/// This method is fast and good for Zobrist hashing and other things. 
+// Pseudorandom number generation given a seed.
+//
+// Internal function.
+// xorshift64star method. Fast and good for Zobrist hashing and other things. 
 inline std::size_t random_generate(std::size_t& seed)
 {
     seed ^= seed >> 12;
@@ -682,24 +685,32 @@ inline std::size_t random_generate(std::size_t& seed)
     return seed * 2685821657736338717ULL;
 }
 
-/// Sparse pseudorandom number given a seed.
-///
-/// Achieved by taking bitwise and of multiple random numbers.
+// Sparse pseudorandom number given a seed.
+//
+// Internal function.
+// Achieved by taking bitwise and of multiple random numbers.
 inline std::size_t random_sparse(std::size_t& seed)
 {
     return random_generate(seed) & random_generate(seed) & random_generate(seed);
 }
 
-
+// Zobrist hash keys for different board and position properties.
+//
+// Internal tables.
+// Used for incrementally updating hash of positions and boards.
+// Filled during initialization.
 inline std::array<std::array<std::array<std::size_t, pieces>, sides>, squares> pieces_zobrist_hash;
 inline std::size_t side_zobrist_hash;
 inline std::array<std::size_t, sides> kingside_castle_zobrist_hash;
 inline std::array<std::size_t, sides> queenside_castle_zobrist_hash;
 inline std::array<std::size_t, files> en_passant_zobrist_hash;
 
+// Attack & magic tables.
+//
+// Internal tables filled during initialization.
+// Used for efficient attack-set lookups.
 inline std::array<magic, squares> rook_magics;
 inline std::array<magic, squares> bishop_magics;
-
 inline std::array<bitboard, 0x19000> rook_attacks;
 inline std::array<bitboard, squares> knight_attacks;
 inline std::array<bitboard, 0x1480> bishop_attacks;
@@ -796,9 +807,10 @@ inline bitboard king_attack_mask(square sq)
 }
 
 
+// Initialize shift table.
+// 
 // Internal function.
-//
-// Initializes a table of shift attacks using magic bitboards.
+// Initializes a table of shift attacks.
 // Used for knight and king attacks.
 void shift_table_init(bitboard* attacks, const std::array<direction, 8>& directions)
 {
@@ -820,8 +832,9 @@ void shift_table_init(bitboard* attacks, const std::array<direction, 8>& directi
     }
 }
 
-// Internal function.
+// Initialize ray table.
 //
+// Internal function.
 // Initializes a table of ray attacks using magic bitboards.
 // Used for rook, bishop and queen attacks.
 void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const std::array<direction, 4>& directions, std::size_t& seed)
@@ -1276,10 +1289,10 @@ public:
     ///
     /// Parse FEN string and returns the position it encodes.
     ///
-    /// \param fen FEN string.
-    /// \returns Position encoded by fen.
+    /// \param fen FEN string. Defaults to starting position.
+    /// \returns Position encoded by FEN.
     /// \throws Invalid argument if FEN seems to be invalid.
-	static position from_fen(std::string_view fen)
+	static position from_fen(std::string_view fen = fen_start)
 	{
 		std::string fen_string(fen);
 		std::istringstream fen_stream(fen_string);
@@ -1542,7 +1555,15 @@ public:
             zobrist_hash ^= kingside_castle_zobrist_hash[side_black];
         }
 
-        halfmove_clock += (piece == piece_pawn || capture != piece_none);
+        if(piece == piece_pawn || capture != piece_none)
+        {
+            halfmove_clock = 0;
+        }
+        else
+        {
+            halfmove_clock++;
+        }
+
         fullmove_number += turn;
         turn = opponent(turn);
         zobrist_hash ^= side_zobrist_hash;
@@ -1552,7 +1573,8 @@ public:
 
     /// Undo move.
     ///
-    /// Undo move on given position by updating internal state.
+    /// Undo move on given position by updating internal state. The undo data
+    /// used should be the one returned when making the move.
     ///
     /// \param m The move.
     /// \param u Undo data.
@@ -1626,8 +1648,9 @@ public:
     /// Copy move.
     ///
     /// Make move on given position by copying state and updating the copy.
-    /// The cost of this seems to be similar to making a move by updating
-    /// internal state.
+    /// This is a little more expensive than making a move by updating internal
+    /// state, but when a lot of move undos are involved, copying seems to
+    /// perform similarly (as undoing is not necessary).
     ///
     /// \param m The move.
     /// \returns Position with the move made.

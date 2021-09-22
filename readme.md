@@ -4,6 +4,8 @@ Chess library with move generation and various utilities, for C++20.
 
 ## usage
 
+See the [docs](docs/chess.md). Simple example:
+
 ```cpp
 #include <chess/chess.hpp>
 

@@ -95,12 +95,6 @@ namespace chess
 
     struct magic;
 
-    unsigned int magic_index(chess::magic const& m, chess::bitboard occupied);
-
-    std::size_t random_generate(std::size_t& seed);
-
-    std::size_t random_sparse(std::size_t& seed);
-
     bitboard pawn_east_attack_set(chess::bitboard bb, chess::side s);
 
     bitboard pawn_west_attack_mask(chess::bitboard bb, chess::side s);
@@ -966,56 +960,6 @@ Returns list of all the squares in a set. Equivalent to all squares whose corres
 
 -----
 
-### Struct `chess::magic`
-
-``` cpp
-struct magic
-{
-};
-```
-
-Magic table entry.
-
-This is used for fast generation of sliding piece attacks.
-
------
-
-### Function `chess::magic_index`
-
-``` cpp
-unsigned int magic_index(chess::magic const& m, chess::bitboard occupied);
-```
-
-Magic index.
-
-Index of attacks in a pregenerated attack table for certain occupancy masks.
-
------
-
-### Function `chess::random_generate`
-
-``` cpp
-std::size_t random_generate(std::size_t& seed);
-```
-
-Pseudorandom number generation given a seed.
-
-This method is fast and good for Zobrist hashing and other things.
-
------
-
-### Function `chess::random_sparse`
-
-``` cpp
-std::size_t random_sparse(std::size_t& seed);
-```
-
-Sparse pseudorandom number given a seed.
-
-Achieved by taking bitwise and of multiple random numbers.
-
------
-
 ### Function `chess::pawn_east_attack_set`
 
 ``` cpp
@@ -1437,7 +1381,7 @@ public:
 
     static std::string_view const fen_empty = "8/8/8/8/8/8/8/8 w - - 0 1";
 
-    static chess::position from_fen(std::string_view fen);
+    static chess::position from_fen(std::string_view fen = fen_start);
 
     std::string to_fen() const;
 
@@ -1526,12 +1470,12 @@ Fen for empty position.
 ### Function `chess::position::from_fen`
 
 ``` cpp
-static chess::position from_fen(std::string_view fen);
+static chess::position from_fen(std::string_view fen = fen_start);
 ```
 
 Create position from Forsyth-Edwards Notation (FEN).
 
-*Return values:* Position encoded by fen.
+*Return values:* Position encoded by FEN.
 
 *Throws:* Invalid argument if FEN seems to be invalid.
 
@@ -1539,7 +1483,7 @@ Parse FEN string and returns the position it encodes.
 
 #### Parameters
 
-  - `fen` - FEN string.
+  - `fen` - FEN string. Defaults to starting position.
 
 -----
 
@@ -1583,7 +1527,7 @@ void undo_move(chess::move const& m, chess::undo const& u);
 
 Undo move.
 
-Undo move on given position by updating internal state.
+Undo move on given position by updating internal state. The undo data used should be the one returned when making the move.
 
 #### Parameters
 
@@ -1602,7 +1546,7 @@ Copy move.
 
 *Return values:* Position with the move made.
 
-Make move on given position by copying state and updating the copy. The cost of this seems to be similar to making a move by updating internal state.
+Make move on given position by copying state and updating the copy. This is a little more expensive than making a move by updating internal state, but when a lot of move undos are involved, copying seems to perform similarly (as undoing is not necessary).
 
 #### Parameters
 

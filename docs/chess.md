@@ -118,6 +118,8 @@ namespace chess
     class position;
 
     void init(std::size_t seed = 2147483647ULL);
+
+    class game;
 }
 ```
 
@@ -1127,9 +1129,9 @@ Data structure that holds placement of pieces with efficient retrieval of certai
 board();
 ```
 
-Empty board.
+Default board.
 
-Construct board without any pieces on it.
+Construct board with pieces in their initial positions.
 
 -----
 
@@ -1381,7 +1383,7 @@ public:
 
     static std::string_view const fen_empty = "8/8/8/8/8/8/8/8 w - - 0 1";
 
-    static chess::position from_fen(std::string_view fen = fen_start);
+    static chess::position from_fen(std::string_view fen);
 
     std::string to_fen() const;
 
@@ -1419,7 +1421,9 @@ Contains information about a chess position including piece placement, whose tur
 position();
 ```
 
-Empty position.
+Start position.
+
+Constructs initial position.
 
 -----
 
@@ -1431,7 +1435,7 @@ position(chess::board&& pieces, chess::side turn = side_white, bool white_kingsi
 
 Construct position.
 
-Construct a position frmo the given information. It is assumed that the position is valid.
+Construct a position froo the given information. It is assumed that the position is valid.
 
 #### Parameters
 
@@ -1470,14 +1474,14 @@ Fen for empty position.
 ### Function `chess::position::from_fen`
 
 ``` cpp
-static chess::position from_fen(std::string_view fen = fen_start);
+static chess::position from_fen(std::string_view fen);
 ```
 
 Create position from Forsyth-Edwards Notation (FEN).
 
 *Return values:* Position encoded by FEN.
 
-*Throws:* Invalid argument if FEN seems to be invalid.
+*Throws:* Invalid argument if FEN seems to be invalid. \\note To get the initial position, the default position constructor can be used.
 
 Parse FEN string and returns the position it encodes.
 

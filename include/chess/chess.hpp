@@ -924,20 +924,51 @@ void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const
 class board
 {
 public:
-    /// Empty board.
+    /// Default board.
     ///
-    /// Construct board without any pieces on it.
+    /// Construct board with pieces in their initial positions.
     board():
-    square_sides{},
-    square_pieces{},
-    side_sets{},
-    piece_sets{},
-    zobrist_hash{0}
+    board
+    (
+        {
+            {square_a8, {side_black, piece_rook}},
+            {square_b8, {side_black, piece_knight}},
+            {square_c8, {side_black, piece_bishop}},
+            {square_d8, {side_black, piece_queen}},
+            {square_e8, {side_black, piece_king}},
+            {square_f8, {side_black, piece_bishop}},
+            {square_g8, {side_black, piece_knight}},
+            {square_h8, {side_black, piece_rook}},
+
+            {square_a7, {side_black, piece_pawn}},
+            {square_b7, {side_black, piece_pawn}},
+            {square_c7, {side_black, piece_pawn}},
+            {square_d7, {side_black, piece_pawn}},
+            {square_e7, {side_black, piece_pawn}},
+            {square_f7, {side_black, piece_pawn}},
+            {square_g7, {side_black, piece_pawn}},
+            {square_h7, {side_black, piece_pawn}},
+
+            {square_a2, {side_white, piece_pawn}},
+            {square_b2, {side_white, piece_pawn}},
+            {square_c2, {side_white, piece_pawn}},
+            {square_d2, {side_white, piece_pawn}},
+            {square_e2, {side_white, piece_pawn}},
+            {square_f2, {side_white, piece_pawn}},
+            {square_g2, {side_white, piece_pawn}},
+            {square_h2, {side_white, piece_pawn}},
+
+            {square_a1, {side_white, piece_rook}},
+            {square_b1, {side_white, piece_knight}},
+            {square_c1, {side_white, piece_bishop}},
+            {square_d1, {side_white, piece_queen}},
+            {square_e1, {side_white, piece_king}},
+            {square_f1, {side_white, piece_bishop}},
+            {square_g1, {side_white, piece_knight}},
+            {square_h1, {side_white, piece_rook}},
+        }
+    )
     {
-        square_sides.fill(side_none);
-        square_pieces.fill(piece_none);
-        side_sets.fill(empty_set);
-        piece_sets.fill(empty_set);
     }
 
     /// Arbitrary board.
@@ -948,8 +979,17 @@ public:
     ///
     /// \param pieces The piece placement.
     board(const std::unordered_map<square, std::pair<side, piece>>& pieces):
-    board()
+    square_sides{},
+    square_pieces{},
+    side_sets{},
+    piece_sets{},
+    zobrist_hash{0}
     {
+        square_sides.fill(side_none);
+        square_pieces.fill(piece_none);
+        side_sets.fill(empty_set);
+        piece_sets.fill(empty_set);
+
         for(auto [sq, sp]: pieces)
         {
             auto [s, p] = sp;
@@ -1229,7 +1269,9 @@ struct undo
 class position
 {
 public:
-    /// Empty position.
+    /// Start position.
+    ///
+    /// Constructs initial position.
     position():
     b(),
     turn{side_white},
@@ -1243,7 +1285,7 @@ public:
 
     /// Construct position.
     ///
-    /// Construct a position frmo the given information. It is assumed that the
+    /// Construct a position froo the given information. It is assumed that the
     /// position is valid.
     ///
     /// \param pieces Piece placement.
@@ -1298,7 +1340,8 @@ public:
     /// \param fen FEN string. Defaults to starting position.
     /// \returns Position encoded by FEN.
     /// \throws Invalid argument if FEN seems to be invalid.
-	static position from_fen(std::string_view fen = fen_start)
+    /// \note To get the initial position, the default position constructor can be used.
+	static position from_fen(std::string_view fen)
 	{
 		std::string fen_string(fen);
 		std::istringstream fen_stream(fen_string);
@@ -1976,6 +2019,16 @@ void init(std::size_t seed = 2147483647ULL)
         en_passant_zobrist_hash[f] = random_generate(seed);
     }
 }
+
+
+class game
+{
+public:
+    /// New game.
+    ///
+    /// Constructs game with empty position and no moves played
+    game();
+};
 
 
 }

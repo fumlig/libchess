@@ -42,18 +42,21 @@ int main()
 }
 ```
 
-## perft
+## testing
 
-A method for debugging and measuring the speed of move generation is recursively counting the number of legal moves to a certain depth in the move tree, starting at a certain position.
+Tests can be built and run with the provided makefile:
+
+```
+make test
+```
+
+### perft
+
+A method for debugging and measuring the speed of move generation is recursively counting the number of legal moves to a certain depth in the move tree, starting at a certain position. This will be run automatically on a set of default positions when testing, but can also be run manually:
 
 ```bash
-# build perft
-make
-# show usage and list positions with known results
-./build/perft
-
-# run perft with depth 5 on start position
-./build/perft startpos 5
+# ./build/test_perft <fen|name> <depth>
+./build/test_perft startpos 5
 ```
 
 If the traversal is too slow you could try increasing the table key size, but this might eat up your memory!

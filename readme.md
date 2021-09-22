@@ -42,6 +42,14 @@ int main()
 }
 ```
 
+## documentation
+
+The code is documented in comments. It can also be rendered with [standardese](https://standardese.github.io/):
+
+```bash
+make docs
+```
+
 ## including
 
 The include directory in this repository contains the library. The easiest way to add it to a project and keep it updated is using git submodules:

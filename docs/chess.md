@@ -69,10 +69,6 @@ namespace chess
 
     constexpr bitboard rank_set(chess::rank r);
 
-    bitboard shift_set(chess::bitboard bb, chess::direction d);
-
-    bitboard ray_set(chess::bitboard bb, chess::direction d, chess::bitboard occupied);
-
     bool set_contains(chess::bitboard bb, chess::square sq);
 
     bitboard set_insert(chess::bitboard bb, chess::square sq);
@@ -92,6 +88,10 @@ namespace chess
     bitboard set_complement(chess::bitboard bb);
 
     std::vector<square> set_elements(chess::bitboard bb);
+
+    bitboard set_shift(chess::bitboard bb, chess::direction d);
+
+    bitboard set_ray(chess::bitboard bb, chess::direction d, chess::bitboard occupied);
 
     struct magic;
 
@@ -736,45 +736,6 @@ The set with all squares of given rank in it.
 
 -----
 
-### Function `chess::shift_set`
-
-``` cpp
-bitboard shift_set(chess::bitboard bb, chess::direction d);
-```
-
-Directional shift of set.
-
-*Return values:* The set shifted in the direction.
-
-Shifts bitboard in given direction. For example, the bitboard where all squares in file A are set to one can be shifted east to obtain a bitboard where all squares in file B are set.
-
-#### Parameters
-
-  - `bb` - The set.
-  - `d` - The direction.
-
------
-
-### Function `chess::ray_set`
-
-``` cpp
-bitboard ray_set(chess::bitboard bb, chess::direction d, chess::bitboard occupied);
-```
-
-Ray cast of a set.
-
-*Return values:* Set with rays.
-
-Given a bitboard, returns a bitboard with rays in the given direction from all set bits. The rays stop at bits set in an occupancy bitboard.
-
-#### Parameters
-
-  - `bb` - The set.
-  - `d` - The direction to cast ray in.
-  - `occupied` - Occupancy set for collisions.
-
------
-
 ### Function `chess::set_contains`
 
 ``` cpp
@@ -957,6 +918,45 @@ Returns list of all the squares in a set. Equivalent to all squares whose corres
 #### Parameters
 
   - `bb` - The set.
+
+-----
+
+### Function `chess::set_shift`
+
+``` cpp
+bitboard set_shift(chess::bitboard bb, chess::direction d);
+```
+
+Directional shift of set.
+
+*Return values:* The set shifted in the direction.
+
+Shifts bitboard in given direction. For example, the bitboard where all squares in file A are set to one can be shifted east to obtain a bitboard where all squares in file B are set.
+
+#### Parameters
+
+  - `bb` - The set.
+  - `d` - The direction.
+
+-----
+
+### Function `chess::set_ray`
+
+``` cpp
+bitboard set_ray(chess::bitboard bb, chess::direction d, chess::bitboard occupied);
+```
+
+Ray cast of a set.
+
+*Return values:* Set with rays.
+
+Given a bitboard, returns a bitboard with rays in the given direction from all set bits. The rays stop at bits set in an occupancy bitboard.
+
+#### Parameters
+
+  - `bb` - The set.
+  - `d` - The direction to cast ray in.
+  - `occupied` - Occupancy set for collisions.
 
 -----
 
@@ -1329,7 +1329,7 @@ Move from Long Algebraic Notation (LAN).
 
 *Throws:* Invalid argument if LAN does not denote a move.
 
-Create move from LAN. “a2a4” is the move from square A2 to A4. “h8h1q” is a promotion to a queen on the H file.
+Create move from LAN. “a2a4” is the move from square A2 to A4. “h7h8q” is a promotion to a queen on the H file.
 
 #### Parameters
 

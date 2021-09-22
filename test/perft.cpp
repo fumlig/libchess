@@ -6,9 +6,7 @@
 
 #include <chess/chess.hpp>
 
-
 using namespace chess;
-
 
 struct entry
 {
@@ -22,7 +20,6 @@ struct result
     std::string fen;
     std::vector<unsigned long long> nodes;
 };
-
 
 static std::unordered_map<std::size_t, entry> table;
 static const size_t table_key_size = 24;
@@ -74,34 +71,41 @@ unsigned long long perft(int depth, position& p, bool divide = false)
     return nodes;
 }
 
-
-void list()
+int test(int depth = 5)
 {
-    for(auto& [name, result]: results)
+    for(auto& [test, result]: results)
     {
-        std::cout << name << '\t' << result.fen << '\t' << result.nodes.size()-1 << std::endl;
-    }
-}
+        position p = position::from_fen(result.fen);    
+        unsigned long long nodes = perft(depth, p, true);
+        unsigned long long answer = result.nodes[depth];
 
-void help(int argc, char* argv[])
-{
-    std::cout
-        << "usage: " << argv[0] << " {<name>,<fen>} <depth>" << std::endl
-        << std::endl
-        << "names:" << std::endl;
+        std::cerr << "perft test " << test << ": expected " << answer << ", got " << nodes << ": ";
+
+        if(nodes == answer)
+        {
+            std::cerr << "success" << std::endl;
+        }
+        else
+        {
+            std::cerr << "failure" << std::endl;
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 int main(int argc, char* argv[])
 {
-    if(argc < 3)
-    {
-        help(argc, argv);
-        return 1;
-    }
-
     chess::init();
 
+    // run tests if no argument is supplied
+    if(argc == 1)
+    {
+        return test();
+    }
 
+    // otherwise run input position
     std::string fen = argv[1];
     int depth = std::stoi(argv[2]);
 
@@ -119,7 +123,7 @@ int main(int argc, char* argv[])
     std::cout << "time: " << time.count() << " s (" << nps << " nps, " << table_hits << " hits)" << std::endl;
     std::cout << "total: " << nodes << std::endl;
 
-    if(depth < answer.nodes.size())
+    if(static_cast<unsigned>(depth) < answer.nodes.size())
     {
         std::cout << "expected: " << answer.nodes[depth] << std::endl;
         

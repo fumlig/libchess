@@ -28,7 +28,7 @@ int main()
 		}
 		std::cout << std::endl;
 
-		// select random move
+		// select first legal move
 		const chess::move move = p.moves().front();
 
 		std::cout << "playing: " << move.to_lan() << std::endl;
@@ -48,8 +48,7 @@ A method for debugging and measuring the speed of move generation is recursively
 
 ```bash
 # build perft
-./build.sh
-
+make
 # show usage and list positions with known results
 ./build/perft
 

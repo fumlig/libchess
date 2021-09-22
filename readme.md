@@ -4,7 +4,7 @@ Chess library with move generation and various utilities, for C++20.
 
 ## usage
 
-See the [docs](docs/chess.md). Simple example:
+See the [documentation](docs/chess.md). Simple example:
 
 ```cpp
 #include <chess/chess.hpp>
@@ -42,11 +42,25 @@ int main()
 }
 ```
 
+## including
+
+The include directory in this repository contains the library. The easiest way to add it to a project and keep it updated is using git submodules:
+
+```bash
+git submodule add git@gitlab.liu.se:TDDE19-2021-1/libchess.git
+```
+
+Add the the include directory in this repository to your include path. For most compilers, like clang and g++, this is done with the `-I` flag, for example:
+
+```bash
+clang++ -Ilibchess/include <...>
+```
+
 ## testing
 
 Tests can be built and run with the provided makefile:
 
-```
+```bash
 make test
 ```
 

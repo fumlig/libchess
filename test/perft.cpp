@@ -75,11 +75,11 @@ int test(int depth = 5)
 {
     for(auto& [test, result]: results)
     {
+        std::cerr << "perft test '" << test << "': ";
+
         position p = position::from_fen(result.fen);    
         unsigned long long nodes = perft(depth, p, true);
         unsigned long long answer = result.nodes[depth];
-
-        std::cerr << "perft test " << test << ": expected " << answer << ", got " << nodes << ": ";
 
         if(nodes == answer)
         {

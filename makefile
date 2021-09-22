@@ -14,4 +14,4 @@ test: $(TESTS)
 build/test_%: test/%.cpp include/chess/chess.hpp
 	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
-	./$@
+	./$@ 1> /dev/null

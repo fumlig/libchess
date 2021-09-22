@@ -375,7 +375,7 @@ const int directions = 16;
 /// \returns Opposite direction. 
 constexpr direction opposite(direction d)
 {
-    return static_cast<direction>((d + 8) % 16);
+    return static_cast<direction>(-d);
 }
 
 /// Forward direction for given side.
@@ -443,80 +443,6 @@ constexpr bitboard file_set(file f)
 constexpr bitboard rank_set(rank r)
 {
     return 0xFFULL << (r*8);
-}
-
-/// Directional shift of set.
-///
-/// Shifts bitboard in given direction. For example, the bitboard
-/// where all squares in file A are set to one can be shifted east to obtain
-/// a bitboard where all squares in file B are set.
-///
-/// \param bb The set.
-/// \param d The direction.
-/// \returns The set shifted in the direction.
-inline bitboard shift_set(bitboard bb, direction d)
-{
-    if(d > 0)
-    {
-        bb <<= d;
-    }
-    else
-    {
-        bb >>= -d;
-    }
-
-    bitboard trim = empty_set;
-
-    switch(d)
-    {
-    case direction_e:
-    case direction_ne:
-    case direction_se:
-    case direction_nne:
-    case direction_sse:
-        trim = file_set(file_a);
-        break;
-    case direction_w:
-    case direction_nw:
-    case direction_sw:
-    case direction_nnw:
-    case direction_ssw:
-        trim = file_set(file_h);
-        break;
-    case direction_ene:
-    case direction_ese:
-        trim = file_set(file_a) | file_set(file_b);
-        break;
-    case direction_wnw:
-    case direction_wsw:
-        trim = file_set(file_g) | file_set(file_h);
-        break;
-    default:
-        break;
-    }
-
-    return bb & ~trim;
-}
-
-/// Ray cast of a set.
-///
-/// Given a bitboard, returns a bitboard with rays in the given direction from 
-/// all set bits. The rays stop at bits set in an occupancy bitboard.
-///
-/// \param bb The set.
-/// \param d The direction to cast ray in.
-/// \param occupied Occupancy set for collisions.
-/// \returns Set with rays.
-inline bitboard ray_set(bitboard bb, direction d, bitboard occupied)
-{
-    bitboard shift = bb;
-    bitboard ray = 0;
-    while(shift != 0 && !(shift & occupied))
-    {
-        shift = shift_set(shift, d);
-        ray |= shift;
-    }
-    return ray;
 }
 
 /// Check if set contains square.
@@ -648,6 +574,79 @@ inline std::vector<square> set_elements(bitboard bb)
     return elements;
 }
 
+/// Directional shift of set.
+///
+/// Shifts bitboard in given direction. For example, the bitboard
+/// where all squares in file A are set to one can be shifted east to obtain
+/// a bitboard where all squares in file B are set.
+///
+/// \param bb The set.
+/// \param d The direction.
+/// \returns The set shifted in the direction.
+inline bitboard set_shift(bitboard bb, direction d)
+{
+    if(d > 0)
+    {
+        bb <<= d;
+    }
+    else
+    {
+        bb >>= -d;
+    }
+
+    bitboard trim = empty_set;
+
+    switch(d)
+    {
+    case direction_e:
+    case direction_ne:
+    case direction_se:
+    case direction_nne:
+    case direction_sse:
+        trim = file_set(file_a);
+        break;
+    case direction_w:
+    case direction_nw:
+    case direction_sw:
+    case direction_nnw:
+    case direction_ssw:
+        trim = file_set(file_h);
+        break;
+    case direction_ene:
+    case direction_ese:
+        trim = file_set(file_a) | file_set(file_b);
+        break;
+    case direction_wnw:
+    case direction_wsw:
+        trim = file_set(file_g) | file_set(file_h);
+        break;
+    default:
+        break;
+    }
+
+    return bb & ~trim;
+}
+
+/// Ray cast of a set.
+///
+/// Given a bitboard, returns a bitboard with rays in the given direction from 
+/// all set bits. The rays stop at bits set in an occupancy bitboard.
+///
+/// \param bb The set.
+/// \param d The direction to cast ray in.
+/// \param occupied Occupancy set for collisions.
+/// \returns Set with rays.
+inline bitboard set_ray(bitboard bb, direction d, bitboard occupied)
+{
+    bitboard shift = bb;
+    bitboard ray = 0;
+    while(shift != 0 && !(shift & occupied))
+    {
+        shift = set_shift(shift, d);
+        ray |= shift;
+    }
+    return ray;
+}
 
 
 // Magic table entry.
@@ -726,7 +725,7 @@ inline std::array<bitboard, squares> king_attacks;
 /// \returns Attacked squares.
 inline bitboard pawn_east_attack_set(bitboard bb, side s)
 {
-    return shift_set(bb, static_cast<direction>(forwards(s) + direction_e));
+    return set_shift(bb, static_cast<direction>(forwards(s) + direction_e));
 }
 
 /// Set of all west pawn attacks.
@@ -739,7 +738,7 @@ inline bitboard pawn_east_attack_set(bitboard bb, side s)
 /// \returns Attacked squares.
 inline bitboard pawn_west_attack_mask(bitboard bb, side s)
 {
-    return shift_set(bb, static_cast<direction>(forwards(s) + direction_w));
+    return set_shift(bb, static_cast<direction>(forwards(s) + direction_w));
 }
 
 /// Set of all rook attacks.
@@ -821,14 +820,14 @@ void shift_table_init(bitboard* attacks, const std::array<direction, 8>& directi
         bitboard sq_bb = square_set(sq);
 
         // initialize knight attacks table
-        attacks[sq] = shift_set(sq_bb, directions[0])
-                    | shift_set(sq_bb, directions[1])
-                    | shift_set(sq_bb, directions[2])
-                    | shift_set(sq_bb, directions[3])
-                    | shift_set(sq_bb, directions[4])
-                    | shift_set(sq_bb, directions[5])
-                    | shift_set(sq_bb, directions[6])
-                    | shift_set(sq_bb, directions[7]);
+        attacks[sq] = set_shift(sq_bb, directions[0])
+                    | set_shift(sq_bb, directions[1])
+                    | set_shift(sq_bb, directions[2])
+                    | set_shift(sq_bb, directions[3])
+                    | set_shift(sq_bb, directions[4])
+                    | set_shift(sq_bb, directions[5])
+                    | set_shift(sq_bb, directions[6])
+                    | set_shift(sq_bb, directions[7]);
     }
 }
 
@@ -853,10 +852,10 @@ void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const
         bitboard edges = ((rank_set(rank_1) | rank_set(rank_8)) & ~rank_set(rank_of(sq)))
                        | ((file_set(file_a) | file_set(file_h)) & ~file_set(file_of(sq)));
 
-        magics[sq].mask = ray_set(sq_bb, directions[0], empty_set)
-                        | ray_set(sq_bb, directions[1], empty_set)
-                        | ray_set(sq_bb, directions[2], empty_set)
-                        | ray_set(sq_bb, directions[3], empty_set);
+        magics[sq].mask = set_ray(sq_bb, directions[0], empty_set)
+                        | set_ray(sq_bb, directions[1], empty_set)
+                        | set_ray(sq_bb, directions[2], empty_set)
+                        | set_ray(sq_bb, directions[3], empty_set);
         magics[sq].mask &= ~edges;
 
         magics[sq].shift = squares - set_cardinality(magics[sq].mask);
@@ -873,10 +872,10 @@ void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const
             // bitboard never becomes zero...
             occupancy[size] = bb;
             // actual attacks
-            reference[size] = ray_set(sq_bb, directions[0], bb)
-                            | ray_set(sq_bb, directions[1], bb)
-                            | ray_set(sq_bb, directions[2], bb)
-                            | ray_set(sq_bb, directions[3], bb);
+            reference[size] = set_ray(sq_bb, directions[0], bb)
+                            | set_ray(sq_bb, directions[1], bb)
+                            | set_ray(sq_bb, directions[2], bb)
+                            | set_ray(sq_bb, directions[3], bb);
 
             size++;
             bb = (bb - magics[sq].mask) & magics[sq].mask;
@@ -1074,8 +1073,8 @@ public:
 
         bitboard attacks = 0;
 
-        attacks |= shift_set(pawns, static_cast<direction>(forwards(s) + direction_e));
-        attacks |= shift_set(pawns, static_cast<direction>(forwards(s) + direction_w));
+        attacks |= set_shift(pawns, static_cast<direction>(forwards(s) + direction_e));
+        attacks |= set_shift(pawns, static_cast<direction>(forwards(s) + direction_w));
 
         while(rooks)
         {
@@ -1171,7 +1170,7 @@ struct move
     /// Move from Long Algebraic Notation (LAN).
     ///
     /// Create move from LAN. "a2a4" is the move from square A2 to A4.
-    /// "h8h1q" is a promotion to a queen on the H file.
+    /// "h7h8q" is a promotion to a queen on the H file.
     ///
     /// \param lan LAN string.
     /// \returns Move corresponding to LAN.
@@ -1193,8 +1192,15 @@ struct move
     /// \returns LAN of move.
 	std::string to_lan() const
 	{
-		return square_to_san(from) + square_to_san(to) + (promote != piece_none ? std::to_string(piece_to_san(side_none, promote)) : "");
+        std::string lan = square_to_san(from) + square_to_san(to);
+        if(promote != piece_none)
+        {
+            lan += piece_to_san(side_black, promote);
+        }
+        return lan;
 	}
+
+    auto operator<=>(const move&) const = default;
 
     square from;
     square to;
@@ -1431,7 +1437,7 @@ public:
 	            }
 	            else if(empty != 0)
 	            {
-					fen_stream << '0' + empty;
+					fen_stream << empty;
 	                empty = 0;
 	            }
 
@@ -1440,7 +1446,7 @@ public:
 
 	        if(empty != 0)
 			{
-				fen_stream << '0' + empty;
+				fen_stream << empty;
 			}
 	        if(r != rank_1)
 			{
@@ -1686,15 +1692,15 @@ public:
         if(en_passant != square_none) ep_mask = square_set(en_passant);
 
         // pawn moves
-        bitboard single_push_tos = shift_set(pawns, forwards(turn)) & ~occupied;
-        bitboard single_push_froms = shift_set(single_push_tos, forwards(opponent(turn)));
-        bitboard double_push_tos = shift_set(single_push_tos & rank_set(side_rank(turn, rank_3)), forwards(turn)) & ~occupied;
-        bitboard double_push_froms = shift_set(shift_set(double_push_tos, forwards(opponent(turn))), forwards(opponent(turn)));
+        bitboard single_push_tos = set_shift(pawns, forwards(turn)) & ~occupied;
+        bitboard single_push_froms = set_shift(single_push_tos, forwards(opponent(turn)));
+        bitboard double_push_tos = set_shift(single_push_tos & rank_set(side_rank(turn, rank_3)), forwards(turn)) & ~occupied;
+        bitboard double_push_froms = set_shift(set_shift(double_push_tos, forwards(opponent(turn))), forwards(opponent(turn)));
 
-        bitboard attack_east_tos = shift_set(pawns, static_cast<direction>(forwards(turn) + direction_e)) & (capture_mask | ep_mask);
-        bitboard attack_east_froms = shift_set(attack_east_tos, static_cast<direction>(forwards(opponent(turn)) + direction_w));
-        bitboard attack_west_tos = shift_set(pawns, static_cast<direction>(forwards(turn) + direction_w)) & (capture_mask | ep_mask);
-        bitboard attack_west_froms = shift_set(attack_west_tos, static_cast<direction>(forwards(opponent(turn)) + direction_e));
+        bitboard attack_east_tos = set_shift(pawns, static_cast<direction>(forwards(turn) + direction_e)) & (capture_mask | ep_mask);
+        bitboard attack_east_froms = set_shift(attack_east_tos, static_cast<direction>(forwards(opponent(turn)) + direction_w));
+        bitboard attack_west_tos = set_shift(pawns, static_cast<direction>(forwards(turn) + direction_w)) & (capture_mask | ep_mask);
+        bitboard attack_west_froms = set_shift(attack_west_tos, static_cast<direction>(forwards(opponent(turn)) + direction_e));
         
         bitboard promote_push_tos = single_push_tos & rank_set(side_rank(turn, rank_8));
         bitboard promote_push_froms = single_push_froms & rank_set(side_rank(turn, rank_7));
@@ -1773,8 +1779,8 @@ public:
             square from = set_first(kings);
             square to = cat_coords(file_g, rank_of(from));
             bitboard path = kings;
-            path |= shift_set(path, direction_e);
-            path |= shift_set(path, direction_e);
+            path |= set_shift(path, direction_e);
+            path |= set_shift(path, direction_e);
             bitboard between = path & ~kings;
 
             if(!(between & occupied) && !(path & b.attack_set(opponent(turn))))
@@ -1787,9 +1793,9 @@ public:
             square from = set_first(kings);
             square to = cat_coords(file_c, rank_of(from));
             bitboard path = kings;
-            path |= shift_set(path, direction_w);
-            path |= shift_set(path, direction_w);
-            bitboard between = shift_set(path, direction_w);
+            path |= set_shift(path, direction_w);
+            path |= set_shift(path, direction_w);
+            bitboard between = set_shift(path, direction_w);
 
             if(!(between & occupied) && !(path & b.attack_set(opponent(turn))))
             {

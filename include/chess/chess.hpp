@@ -1917,7 +1917,7 @@ public:
     /// Returns the side of the player whose turn it is
     ///
     /// \returns Current turn.
-    side get_turn()
+    side get_turn() const
     {
         return turn;
     }

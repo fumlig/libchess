@@ -1912,6 +1912,15 @@ public:
         return zobrist_hash ^ b.hash();
     }
 
+    /// Get current turn
+    ///
+    /// Returns the side of the player whose turn it is
+    ///
+    /// \returns Current turn.
+    side get_turn() const
+    {
+        return turn;
+    }
 
     /// Check flag.
     ///

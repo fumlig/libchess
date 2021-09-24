@@ -119,7 +119,6 @@ std::pair<side, piece> piece_from_san(char san)
 /// \param s The side of the piece.
 /// \param p The type of the piece.
 /// \returns SAN for piece of given side.
-/// \throws Invalid argument if piece is none.
 char piece_to_san(side s, piece p)
 {
 	char c;
@@ -146,10 +145,11 @@ char piece_to_san(side s, piece p)
 		break;
 	case piece_none:
 	default:
-		throw std::invalid_argument("no piece, no san");
+        c = ' ';
+        break;
 	}
 
-	if(s == side_black)
+	if(s == side_black && p != piece_none)
 	{
 		c = std::tolower(c);
 	}
@@ -1154,9 +1154,67 @@ public:
         return attacks;
     }
 
+    /// Board hash.
+    ///
+    /// Returns the Zobrist hash of the board (piece placement).
+    ///
+    /// \returns Zobrist hash.
     inline std::size_t hash() const
     {
         return zobrist_hash;
+    }
+
+    /// Board to string.
+    ///
+    /// Returns (pretty) string representation of board, one rank per row.
+    /// Starts at top left corner of board (square A8)
+    ///
+    /// \param coords Show coordinates.
+    /// \returns Board string.
+    std::string to_string(bool coords = true) const
+    {
+        std::ostringstream stream;
+
+        for(int i = rank_8; i >= rank_1; i--)
+        {
+            rank r = static_cast<rank>(i);
+
+            if(coords)
+            {
+                stream << rank_to_san(r);
+            }
+
+            for(int j = file_a; j <= file_h; j++)
+            {
+                file f = static_cast<file>(j);
+
+                square sq = cat_coords(f, r);
+                auto [s, p] = get(sq);
+
+                if(p == piece_none)
+                {
+                    stream << '.';
+                }
+                else
+                {
+                    stream << piece_to_san(s, p);
+                }
+            }
+
+            stream << '\n';
+        }
+
+        if(coords)
+        {
+            stream << ' ';
+            for(int j = file_a; j <= file_h; j++)
+            {
+                file f = static_cast<file>(j);
+                stream << file_to_san(f);
+            }
+        }
+
+        return stream.str();
     }
 
 private:
@@ -1943,6 +2001,28 @@ public:
         return !is_check() && moves().empty();
     }
 
+    /// Board to string.
+    ///
+    /// Returns (pretty) string representation of board, one rank per row.
+    /// Starts at top left corner of board (square A8)
+    ///
+    /// \param coords Show coordinates.
+    /// \returns Board string.
+    std::string to_string(bool coords = true) const
+    {
+        std::ostringstream stream;
+
+        stream << '\n';
+        stream << "turn: " << (turn == side_white ? "white" : "black") << '\n';
+        stream << "white kingside castle: " << (kingside_castle[side_white] ? "yes" : "no") << '\n';
+        stream << "white queenside castle: " << (queenside_castle[side_white] ? "yes" : "no") << '\n';
+        stream << "black kingside castle: " << (kingside_castle[side_black] ? "yes" : "no") << '\n';
+        stream << "black queenside castle: " << (queenside_castle[side_black] ? "yes" : "no") << '\n';
+        stream << "halfmove clock: " << halfmove_clock << '\n';
+        stream << "fullmove number: " << fullmove_number << '\n';
+
+        return b.to_string() + stream.str();
+    }
 
 private:
     inline void piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves) const

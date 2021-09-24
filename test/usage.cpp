@@ -30,5 +30,7 @@ int main()
 	// print final fen
 	std::cout << p.to_fen() << std::endl;
 
+	std::cout << p.to_string() << std::endl;
+
 	return 0;
 }

@@ -229,8 +229,6 @@ Piece and side to Short Algebraic Notation (SAN).
 
 *Return values:* SAN for piece of given side.
 
-*Throws:* Invalid argument if piece is none.
-
 Pawn is ‘P’, rook is ‘R’, knight is ‘N’, bishop is ‘B’, queen is ‘Q’ and king is ‘K’. An uppercase letter indicates that it is a white piece and a lowercase indicates letter that it is a black piece.
 
 #### Parameters
@@ -1116,6 +1114,10 @@ public:
     chess::bitboard occupied_set() const;
 
     chess::bitboard attack_set(chess::side s) const;
+
+    std::size_t hash() const;
+
+    std::string to_string(bool coords = true) const;
 };
 ```
 
@@ -1265,6 +1267,38 @@ Returns the set of all squares attacked by a given side.
 #### Parameters
 
   - `s` - The side.
+
+-----
+
+### Function `chess::board::hash`
+
+``` cpp
+std::size_t hash() const;
+```
+
+Board hash.
+
+*Return values:* Zobrist hash.
+
+Returns the Zobrist hash of the board (piece placement).
+
+-----
+
+### Function `chess::board::to_string`
+
+``` cpp
+std::string to_string(bool coords = true) const;
+```
+
+Board to string.
+
+*Return values:* Board string.
+
+Returns (pretty) string representation of board, one rank per row. Starts at top left corner of board (square A8)
+
+#### Parameters
+
+  - `coords` - Show coordinates.
 
 -----
 

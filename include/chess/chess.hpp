@@ -72,7 +72,7 @@ const int pieces = 6;
 /// \param san SAN of for piece.
 /// \returns Side and piece type
 /// \throws Invalid argument if SAN does not denote a piece.
-std::pair<side, piece> piece_from_san(char san)
+inline std::pair<side, piece> piece_from_san(char san)
 {
 	side s = side_white;
 	piece p = piece_none;
@@ -119,7 +119,7 @@ std::pair<side, piece> piece_from_san(char san)
 /// \param s The side of the piece.
 /// \param p The type of the piece.
 /// \returns SAN for piece of given side.
-char piece_to_san(side s, piece p)
+inline char piece_to_san(side s, piece p)
 {
 	char c;
 
@@ -248,7 +248,7 @@ constexpr square cat_coords(file f, rank r)
 /// \param san SAN of file.
 /// \returns File with given SAN.
 /// \throws Invalid argument if SAN does not denote a file.
-file file_from_san(char san)
+inline file file_from_san(char san)
 {
 	if(san < 'a' || san > 'h')
 	{
@@ -265,7 +265,7 @@ file file_from_san(char san)
 /// \param san SAN of rank.
 /// \returns Rank with given SAN.
 /// \throws Invalid argument if SAN does not denote a rank.
-rank rank_from_san(char san)
+inline rank rank_from_san(char san)
 {
 	if(san < '1' || san > '8')
 	{
@@ -282,7 +282,7 @@ rank rank_from_san(char san)
 /// \param san SAN of rank.
 /// \returns Rank with given SAN.
 /// \throws Invalid argument if SAN does not denote a rank.
-square square_from_san(std::string_view san)
+inline square square_from_san(std::string_view san)
 {
 	if(san == "-")
 	{
@@ -303,7 +303,7 @@ square square_from_san(std::string_view san)
 ///
 /// \param f File to get SAN for.
 /// \returns SAN for file.
-char file_to_san(file f)
+inline char file_to_san(file f)
 {
 	return static_cast<file>('a' + f);
 }
@@ -314,7 +314,7 @@ char file_to_san(file f)
 ///
 /// \param r Rank to get SAN for.
 /// \returns SAN for rank.
-char rank_to_san(rank r)
+inline char rank_to_san(rank r)
 {
 	return static_cast<rank>('1' + r);
 }
@@ -326,7 +326,7 @@ char rank_to_san(rank r)
 ///
 /// \param sq Square to convert.
 /// \returns SAN of square.
-std::string square_to_san(square sq)
+inline std::string square_to_san(square sq)
 {
 	if(sq == square_none)
 	{
@@ -811,7 +811,7 @@ inline bitboard king_attack_mask(square sq)
 // Internal function.
 // Initializes a table of shift attacks.
 // Used for knight and king attacks.
-void shift_table_init(bitboard* attacks, const std::array<direction, 8>& directions)
+inline void shift_table_init(bitboard* attacks, const std::array<direction, 8>& directions)
 {
     for(int i = square_a1; i <= square_h8; i++)
     {
@@ -836,7 +836,7 @@ void shift_table_init(bitboard* attacks, const std::array<direction, 8>& directi
 // Internal function.
 // Initializes a table of ray attacks using magic bitboards.
 // Used for rook, bishop and queen attacks.
-void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const std::array<direction, 4>& directions, std::size_t& seed)
+inline void ray_table_init(bitboard* attacks, std::array<magic, squares>& magics, const std::array<direction, 4>& directions, std::size_t& seed)
 {
     bitboard occupancy[4096];
     bitboard reference[4096];
@@ -2072,7 +2072,7 @@ private:
 /// Sets up internal state such as attack tables and Zobrist hash keys.
 /// The default seed seems to work fine but there might exist one that is both
 /// faster and yields better pseudorandom numbers.
-void init(std::size_t seed = 2147483647ULL)
+inline void init(std::size_t seed = 2147483647ULL)
 {
 	const std::array<direction, 4> rook_directions{direction_n, direction_e, direction_s, direction_w};
 	const std::array<direction, 4> bishop_directions{direction_ne, direction_se, direction_sw, direction_nw};

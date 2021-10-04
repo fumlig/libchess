@@ -7,6 +7,7 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
+#include <compare>
 #include <exception>
 #include <iostream>
 #include <sstream>

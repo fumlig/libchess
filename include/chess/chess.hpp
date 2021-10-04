@@ -1410,7 +1410,7 @@ public:
 
 		if(!(fen_stream >> pieces_string >> turn_string >> castle_string >> en_passant_string >> halfmove_clock >> fullmove_number))
 		{
-			throw std::invalid_argument("fen does not contain 7 fields");
+			throw std::invalid_argument("fen does not contain 6 fields");
 		}
 
 		// pieces

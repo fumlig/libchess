@@ -19,7 +19,7 @@
 
 
 namespace chess
-{
+{ 
 
 
 /// Sides in chess.

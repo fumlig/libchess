@@ -1,26 +1,17 @@
 CXXFLAGS ?= -std=c++20 -g -O3  -Wall -Wpedantic
-CPPFLAGS ?= -Iinclude
+CPPFLAGS ?= -I.
 
-HEADER := include/chess/chess.hpp
-DOCS := docs/chess.md
-TESTS := $(patsubst test/%.cpp,build/test_%,$(wildcard test/*))
+HEADER := chess/chess.hpp
+TESTS := $(patsubst tests/%.cpp,build/test_%,$(wildcard tests/*))
 
-all: test docs
+all: tests
 
 clean:
-	rm $(TESTS) $(DOCS)
+	rm $(TESTS)
 
-test: $(TESTS)
+tests: $(TESTS)
 
-docs: $(DOCS)
-
-$(DOCS): $(HEADER)
-	mkdir -p $(@D)
-	standardese --compilation.standard c++20 --output.prefix docs/ include/chess/chess.hpp
-	rm $(@D)/standardese_*
-	mv $(@D)/doc_chess.md $@
-
-build/test_%: test/%.cpp $(HEADER)
+build/test_%: tests/%.cpp $(HEADER)
 	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 	./$@ 1> /dev/null

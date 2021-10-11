@@ -2110,16 +2110,6 @@ inline void init(std::size_t seed = 2147483647ULL)
 }
 
 
-class game
-{
-public:
-    /// New game.
-    ///
-    /// Constructs game with empty position and no moves played
-    game();
-};
-
-
 }
 
 

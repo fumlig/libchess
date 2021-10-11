@@ -7,7 +7,6 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
-#include <compare>
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -1299,7 +1298,7 @@ struct move
         return lan;
 	}
 
-    auto operator<=>(const move&) const = default;
+    //auto operator<=>(const move&) const = default;
 
     square from;
     square to;

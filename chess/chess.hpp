@@ -9,7 +9,9 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
+#include <optional>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -227,6 +229,12 @@ constexpr file file_of(square sq)
 constexpr rank rank_of(square sq)
 {
     return static_cast<rank>(sq / 8);
+}
+
+
+constexpr side color_of(square sq)
+{
+    return static_cast<int>(sq) % 2 == 1 ? side_white : side_black;
 }
 
 /// Concatenate coordinates into square.
@@ -1316,7 +1324,7 @@ struct undo
     square en_passant;
     std::array<bool, sides> kingside_castle;
     std::array<bool, sides> queenside_castle;
-    // todo: halfmove clock?
+    int halfmove_clock;
 };
 
 
@@ -1580,7 +1588,7 @@ public:
     undo make_move(const move& m)
     {
 		piece capture = b.get(m.to).second;
-        undo u{capture, en_passant, kingside_castle, queenside_castle};
+        undo u{capture, en_passant, kingside_castle, queenside_castle, halfmove_clock};
 
         auto [side, piece] = b.get(m.from);
         square ep = en_passant;
@@ -1746,7 +1754,7 @@ public:
             }
         }
 
-        halfmove_clock--; // todo: only if silent move
+        halfmove_clock = u.halfmove_clock;
         fullmove_number -= opponent(turn); // decrease if white
         turn = opponent(turn);
         zobrist_hash ^= side_zobrist_hash;
@@ -1929,12 +1937,12 @@ public:
         return moves;
     }
 
-    /// Position pieces.
+    /// Position board.
     ///
     /// Returns the piece placement of the position.
     ///
-    /// \returns The pieces.
-    const board& pieces() const
+    /// \returns The board.
+    const board& get_board() const
     {
         return b;
     }
@@ -1944,7 +1952,7 @@ public:
     /// Returns the number of fullmoves since initial position.
     ///
     /// \returns The fullmove number.
-    int fullmove() const
+    int get_fullmove() const
     {
         return fullmove_number;
     }
@@ -1955,9 +1963,14 @@ public:
     /// since initial position.
     ///
     /// \returns The halfmove number.
-    int halfmove() const
+    int get_halfmove() const
     {
         return (fullmove_number - 1)*2 + turn;
+    }
+
+    int get_halfmove_clock() const
+    {
+        return halfmove_clock;
     }
 
     /// Position hash.
@@ -2008,6 +2021,16 @@ public:
     bool is_stalemate() const
     {
         return !is_check() && moves().empty();
+    }
+
+    bool is_fiftymove_rule() const
+    {
+        return halfmove_clock >= 100;
+    }
+
+    bool is_seventyfivemove_rule() const
+    {
+        return halfmove_clock >= 150;
     }
 
     /// Board to string.
@@ -2064,6 +2087,148 @@ private:
     int halfmove_clock;
     int fullmove_number;
     std::size_t zobrist_hash;
+};
+
+
+/// Chess game.
+///
+/// Includes position and move history.
+class game
+{
+public:
+    game():
+    p(),
+    history(),
+    repetitions()
+    {
+        repetitions.emplace(p.hash(), 1);
+        repetitions[p.hash()]++;
+    }
+
+    game(position&& p, const std::vector<move>& moves):
+    p{p},
+    history{},
+    repetitions{}
+    {
+        repetitions[p.hash()]++;
+
+        for(const move& move: moves)
+        {
+            push_move(move);
+        }
+    }
+
+    void push_move(const chess::move& move)
+    {
+        undo undo = p.make_move(move);
+        history.emplace(move, undo);
+        repetitions[p.hash()]++;
+    }
+
+    void pop_move()
+    {
+        repetitions[p.hash()]--;
+        auto [move, undo] = history.top();
+        history.pop();
+        p.undo_move(move, undo);
+    }
+
+    int get_repetitions(const std::optional<position>& position = std::nullopt)
+    {
+        if(!position)
+        {
+            return repetitions[p.hash()];
+        }
+        else
+        {
+            return repetitions[(*position).hash()];
+        }
+    }
+
+    const position& get_position() const
+    {
+        return p;
+    }
+
+    bool is_check() const
+    {
+        return p.is_check();
+    }
+
+    bool is_checkmate() const
+    {
+        return p.is_checkmate();
+    }
+
+    bool is_stalemate() const
+    {
+        return p.is_stalemate();
+    }
+
+    bool is_threefold_repetition() const
+    {
+        return repetitions.at(p.hash()) >= 3;
+    }
+
+    bool is_fivefold_repetition() const
+    {
+        return repetitions.at(p.hash()) >= 5;
+    }
+
+    bool is_fiftymove_rule() const
+    {
+        return p.get_halfmove_clock() >= 100;
+    }
+
+    bool is_seventyfivemove_rule() const
+    {
+        return p.get_halfmove_clock() >= 150;
+    }
+
+    bool is_insufficient_material() const
+    {
+        int pawns = set_cardinality(p.get_board().piece_set(piece_pawn));
+        int rooks = set_cardinality(p.get_board().piece_set(piece_rook));
+        int knights = set_cardinality(p.get_board().piece_set(piece_knight));
+        int bishops = set_cardinality(p.get_board().piece_set(piece_bishop));
+        int queens = set_cardinality(p.get_board().piece_set(piece_queen));
+
+        if(pawns > 0 || rooks > 0 || queens > 0)
+        {
+            return false;
+        }
+
+        if((knights == 0 && bishops <= 1) || (knights <= 1 && bishops == 0))
+        {
+            return true;
+        }
+   
+        if(bishops == 2)
+        {
+            bitboard white_bishop_set = p.get_board().piece_set(piece_bishop, side_white);
+            bitboard black_bishop_set = p.get_board().piece_set(piece_bishop, side_black);
+
+            if(!white_bishop_set || !white_bishop_set)
+            {
+                return false;
+            }
+
+            side white_bishop_color = color_of(set_first(white_bishop_set));
+            side black_bishop_color = color_of(set_first(black_bishop_set));
+
+            if(white_bishop_color == black_bishop_color)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+private:
+    position p;
+    std::stack<std::pair<move, undo>> history;
+    std::unordered_map<std::size_t, int> repetitions;
 };
 
 

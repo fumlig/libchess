@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
 	test(side_rank(side_black, rank_5) == rank_4, "side_rank");
 	test(file_of(square_h8) == file_h, "file_of");
 	test(rank_of(square_h8) == rank_8, "rank_of");
+	test(color_of(square_a1) == side_black, "color_of");
 	test(cat_coords(file_e, rank_4) == square_e4, "cat_coords");
 	test(file_from_san(file_to_san(file_a)) == file_a, "file_{to,from}_san");
 	test(rank_from_san(rank_to_san(rank_1)) == rank_1, "rank_{to,from}_san");
@@ -57,6 +58,6 @@ int main(int argc, char* argv[])
 	test(position::from_fen("k6R/8/8/8/8/8/8/7K b - - 0 1").is_check(), "position::is_check");
 	test(position::from_fen("k6R/7R/8/8/8/8/8/7K b - - 0 1").is_checkmate(), "position::is_checkmate");
 	test(position::from_fen("k7/7R/8/8/8/8/8/1R5K b - - 0 1").is_stalemate(), "position::is_stalemate");
-	
+
 	exit(EXIT_SUCCESS);
 }

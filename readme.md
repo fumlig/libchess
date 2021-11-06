@@ -7,6 +7,7 @@ Chess library with move generation and various utilities, for C++20.
 Simple usage example:
 
 ```cpp
+#include <iostream>
 #include <chess/chess.hpp>
 
 int main()

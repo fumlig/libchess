@@ -572,6 +572,16 @@ int position::get_halfmove_clock() const
     return halfmove_clock;
 }
 
+bool position::can_castle_kingside(side s) const
+{
+    return kingside_castle[s];
+}
+
+bool position::can_castle_queenside(side s) const
+{
+    return queenside_castle[s];
+}
+
 std::size_t position::hash() const
 {
     return zobrist_hash ^ b.hash();

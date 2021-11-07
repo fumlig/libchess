@@ -177,6 +177,9 @@ public:
     /// \returns Halfmove clock.
     int get_halfmove_clock() const;
 
+    bool can_castle_kingside(side s) const;
+    bool can_castle_queenside(side s) const;
+
     /// Board to string.
     ///
     /// Returns (pretty) string representation of board, one rank per row.

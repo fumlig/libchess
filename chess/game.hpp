@@ -6,7 +6,7 @@
 #include <stack>
 #include <unordered_map>
 #include <optional>
-
+#include <cstdint>
 
 #include "board.hpp"
 #include "position.hpp"
@@ -25,8 +25,11 @@ public:
     game();
     game(position&& p, const std::vector<move>& moves);
 
-    void push_move(const chess::move& move);
-    void pop_move();
+    void push(const chess::move& move);
+    void pop();
+    const position& top() const;
+    const std::size_t size() const;
+    const bool empty() const;
 
     int get_repetitions(const std::optional<position>& position = std::nullopt);
 

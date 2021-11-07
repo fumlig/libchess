@@ -28,23 +28,38 @@ repetitions{}
 
     for(const move& move: moves)
     {
-        push_move(move);
+        push(move);
     }
 }
 
-void game::push_move(const chess::move& move)
+void game::push(const chess::move& move)
 {
     undo undo = p.make_move(move);
     history.emplace(move, undo);
     repetitions[p.hash()]++;
 }
 
-void game::pop_move()
+void game::pop()
 {
     repetitions[p.hash()]--;
     auto [move, undo] = history.top();
     history.pop();
     p.undo_move(move, undo);
+}
+
+const position& game::top() const
+{
+    return p;
+}
+
+const std::size_t game::size() const
+{
+    return history.size();
+}
+
+const bool game::empty() const
+{
+    return history.empty();
 }
 
 int game::get_repetitions(const std::optional<position>& position)

@@ -48,7 +48,8 @@ public:
     bool is_insufficient_material() const;
 
     bool is_terminal() const;
-    std::optional<int> get_score(side s = side_white) const;
+    std::optional<float> get_score(side s = side_white) const;
+    std::optional<int> get_value(side s = side_white) const;
 
 private:
     position p;

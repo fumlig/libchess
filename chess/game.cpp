@@ -15,7 +15,6 @@ p(),
 history(),
 repetitions()
 {
-    repetitions.emplace(p.hash(), 1);
     repetitions[p.hash()]++;
 }
 
@@ -152,6 +151,22 @@ bool game::is_insufficient_material() const
     }
 
     return false;
+}
+
+bool game::is_terminal() const
+{
+    return is_checkmate() || is_stalemate() || is_threefold_repetition() || is_fiftymove_rule() || is_insufficient_material();
+}
+
+std::optional<int> game::get_score(side s) const
+{
+    if(is_terminal())
+    {
+        if(is_checkmate()) return p.get_turn() == opponent(s) ? 1 : -1;
+        return 0;
+    }
+
+    return std::nullopt;
 }
 
 

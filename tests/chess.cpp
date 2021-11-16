@@ -58,6 +58,7 @@ int main(int argc, char* argv[])
 	test(position::from_fen("k6R/8/8/8/8/8/8/7K b - - 0 1").is_check(), "position::is_check");
 	test(position::from_fen("k6R/7R/8/8/8/8/8/7K b - - 0 1").is_checkmate(), "position::is_checkmate");
 	test(position::from_fen("k7/7R/8/8/8/8/8/1R5K b - - 0 1").is_stalemate(), "position::is_stalemate");
+	test(game().get_repetitions() == 1, "game::get_repetitions()");
 
 	exit(EXIT_SUCCESS);
 }

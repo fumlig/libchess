@@ -47,6 +47,9 @@ public:
 
     bool is_insufficient_material() const;
 
+    bool is_terminal() const;
+    std::optional<int> get_score(side s = side_white) const;
+
 private:
     position p;
     std::stack<std::pair<move, undo>> history;

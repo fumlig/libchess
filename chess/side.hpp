@@ -34,6 +34,12 @@ constexpr side opponent(side s)
 }
 
 
+constexpr side ply_turn(unsigned ply)
+{
+	return static_cast<side>(ply % 2);
+}
+
+
 std::string to_string(side s);
 
 

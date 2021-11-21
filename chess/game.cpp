@@ -18,7 +18,7 @@ repetitions()
     repetitions[p.hash()]++;
 }
 
-game::game(position&& p, const std::vector<move>& moves):
+game::game(const position& p, const std::vector<move>& moves):
 p{p},
 history{},
 repetitions{}

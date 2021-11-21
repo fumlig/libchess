@@ -44,7 +44,7 @@ public:
     /// \param fullmove_number Number of fullmoves made.
     position
     (
-        board&& b, 
+        const board& b, 
         side turn = side_white,
         bool white_kingside_castle = true,
         bool white_queenside_castle = true,

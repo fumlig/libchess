@@ -23,7 +23,7 @@ class game
 {
 public:
     game();
-    game(position&& p, const std::vector<move>& moves);
+    game(const position& p, const std::vector<move>& moves);
 
     void push(const chess::move& move);
     void pop();

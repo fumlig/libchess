@@ -28,7 +28,7 @@ zobrist_hash{0}
 
 position::position
 (
-    board&& b, 
+    const board& b, 
     side turn,
     bool white_kingside_castle,
     bool white_queenside_castle,

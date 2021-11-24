@@ -3,7 +3,6 @@
 
 
 #include <vector>
-#include <stack>
 #include <unordered_map>
 #include <optional>
 #include <cstdint>
@@ -31,9 +30,9 @@ public:
     const std::size_t size() const;
     const bool empty() const;
 
-    int get_repetitions(const std::optional<position>& position = std::nullopt);
-
     const position& get_position() const;
+    const std::vector<std::pair<move, undo>>& get_history() const;
+    int get_repetitions(const std::optional<position>& position = std::nullopt);
 
     bool is_check() const;
     bool is_checkmate() const;
@@ -53,7 +52,7 @@ public:
 
 private:
     position p;
-    std::stack<std::pair<move, undo>> history;
+    std::vector<std::pair<move, undo>> history;
     std::unordered_map<std::size_t, int> repetitions;
 };
 

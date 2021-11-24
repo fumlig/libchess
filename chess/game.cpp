@@ -34,16 +34,16 @@ repetitions{}
 void game::push(const chess::move& move)
 {
     undo undo = p.make_move(move);
-    history.emplace(move, undo);
+    history.emplace_back(move, undo);
     repetitions[p.hash()]++;
 }
 
 void game::pop()
 {
     repetitions[p.hash()]--;
-    auto [move, undo] = history.top();
-    history.pop();
+    auto [move, undo] = history.back();
     p.undo_move(move, undo);
+    history.pop_back();
 }
 
 const position& game::top() const
@@ -76,6 +76,11 @@ int game::get_repetitions(const std::optional<position>& position)
 const position& game::get_position() const
 {
     return p;
+}
+
+const std::vector<std::pair<move, undo>>& game::get_history() const
+{
+    return history;
 }
 
 bool game::is_check() const

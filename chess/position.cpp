@@ -684,9 +684,14 @@ bool position::is_insufficient_material() const
     return false;
 }
 
+bool position::is_draw() const
+{
+    return is_stalemate() || is_threefold_repetition() || is_fiftymove_rule() || is_insufficient_material();
+}
+
 bool position::is_terminal() const
 {
-    return is_checkmate() || is_stalemate() || is_threefold_repetition() || is_fiftymove_rule() || is_insufficient_material();
+    return is_checkmate() || is_draw();
 }
 
 void position::piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves) const

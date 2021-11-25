@@ -201,9 +201,8 @@ public:
 
     bool is_insufficient_material() const;
 
+    bool is_draw() const;
     bool is_terminal() const;
-    std::optional<float> get_score(side s = side_white) const;
-    std::optional<int> get_value(side s = side_white) const;
 
 private:
     void piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves) const;

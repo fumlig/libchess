@@ -23,7 +23,8 @@ queenside_castle{true, true},
 en_passant{square_none},
 halfmove_clock{0},
 fullmove_number{1},
-zobrist_hash{0}
+zobrist_hash{0},
+repetitions{1}
 {}
 
 position::position

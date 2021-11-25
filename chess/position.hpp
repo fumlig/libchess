@@ -4,6 +4,7 @@
 
 #include <string>
 #include <sstream>
+#include <optional>
 
 #include "side.hpp"
 #include "square.hpp"
@@ -135,6 +136,26 @@ public:
     /// \returns The halfmove number.
     int get_halfmove() const;
 
+    /// Get current turn
+    ///
+    /// Returns the side of the player whose turn it is
+    ///
+    /// \returns Current turn.
+    side get_turn() const;
+
+    /// Get halfmove clock.
+    ///
+    /// Returns the number of halfmoves since last pawn push or capture.
+    ///
+    /// \returns Halfmove clock.
+    int get_halfmove_clock() const;
+
+    // Should only be used on positions managed by game class.
+    int get_repetititons() const;
+
+    bool can_castle_kingside(side s) const;
+    bool can_castle_queenside(side s) const;
+
     /// Position hash.
     ///
     /// Returns the Zobrist hash of the position.
@@ -142,12 +163,14 @@ public:
     /// \returns The hash.
     std::size_t hash() const;
 
-    /// Get current turn
+    /// Board to string.
     ///
-    /// Returns the side of the player whose turn it is
+    /// Returns (pretty) string representation of board, one rank per row.
+    /// Starts at top left corner of board (square A8)
     ///
-    /// \returns Current turn.
-    side get_turn() const;
+    /// \param coords Show coordinates.
+    /// \returns Board string.
+    std::string to_string(bool coords = true) const;
 
     /// Check flag.
     ///
@@ -170,24 +193,17 @@ public:
     /// \returns Stalemate flag.
     bool is_stalemate() const;
 
-    /// Get halfmove clock.
-    ///
-    /// Returns the number of halfmoves since last pawn push or capture.
-    ///
-    /// \returns Halfmove clock.
-    int get_halfmove_clock() const;
+    bool is_threefold_repetition() const;
+    bool is_fivefold_repetition() const;
 
-    bool can_castle_kingside(side s) const;
-    bool can_castle_queenside(side s) const;
+    bool is_fiftymove_rule() const;
+    bool is_seventyfivemove_rule() const;
 
-    /// Board to string.
-    ///
-    /// Returns (pretty) string representation of board, one rank per row.
-    /// Starts at top left corner of board (square A8)
-    ///
-    /// \param coords Show coordinates.
-    /// \returns Board string.
-    std::string to_string(bool coords = true) const;
+    bool is_insufficient_material() const;
+
+    bool is_terminal() const;
+    std::optional<float> get_score(side s = side_white) const;
+    std::optional<int> get_value(side s = side_white) const;
 
 private:
     void piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves) const;
@@ -201,6 +217,9 @@ private:
     int halfmove_clock;
     int fullmove_number;
     std::size_t zobrist_hash;
+    int repetitions;
+
+    friend class game;
 };
 
 

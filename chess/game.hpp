@@ -34,19 +34,6 @@ public:
     const std::vector<std::pair<move, undo>>& get_history() const;
     int get_repetitions(const std::optional<position>& position = std::nullopt);
 
-    bool is_check() const;
-    bool is_checkmate() const;
-    bool is_stalemate() const;
-
-    bool is_threefold_repetition() const;
-    bool is_fivefold_repetition() const;
-
-    bool is_fiftymove_rule() const;
-    bool is_seventyfivemove_rule() const;
-
-    bool is_insufficient_material() const;
-
-    bool is_terminal() const;
     std::optional<float> get_score(side s = side_white) const;
     std::optional<int> get_value(side s = side_white) const;
 

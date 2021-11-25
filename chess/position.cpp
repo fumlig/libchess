@@ -45,7 +45,8 @@ queenside_castle{white_queenside_castle, black_queenside_castle},
 en_passant{en_passant},
 halfmove_clock{halfmove_clock},
 fullmove_number{fullmove_number},
-zobrist_hash{0}
+zobrist_hash{0},
+repetitions{1}
 {
     if(turn == side_black)              zobrist_hash ^= zobrist_side_key();
     if(kingside_castle[side_white])     zobrist_hash ^= zobrist_kingside_castle_key(side_white);
@@ -592,6 +593,22 @@ side position::get_turn() const
     return turn;
 }
 
+std::string position::to_string(bool coords) const
+{
+    std::ostringstream stream;
+
+    stream << '\n';
+    stream << "turn: " << (turn == side_white ? "white" : "black") << '\n';
+    stream << "white kingside castle: " << (kingside_castle[side_white] ? "yes" : "no") << '\n';
+    stream << "white queenside castle: " << (queenside_castle[side_white] ? "yes" : "no") << '\n';
+    stream << "black kingside castle: " << (kingside_castle[side_black] ? "yes" : "no") << '\n';
+    stream << "black queenside castle: " << (queenside_castle[side_black] ? "yes" : "no") << '\n';
+    stream << "halfmove clock: " << halfmove_clock << '\n';
+    stream << "fullmove number: " << fullmove_number << '\n';
+
+    return b.to_string() + stream.str();
+}
+
 bool position::is_check() const
 {
     return b.attack_set(opponent(turn)) & b.piece_set(piece_king, turn);
@@ -607,20 +624,69 @@ bool position::is_stalemate() const
     return !is_check() && moves().empty();
 }
 
-std::string position::to_string(bool coords) const
+bool position::is_threefold_repetition() const
 {
-    std::ostringstream stream;
+    return repetitions >= 3;
+}
 
-    stream << '\n';
-    stream << "turn: " << (turn == side_white ? "white" : "black") << '\n';
-    stream << "white kingside castle: " << (kingside_castle[side_white] ? "yes" : "no") << '\n';
-    stream << "white queenside castle: " << (queenside_castle[side_white] ? "yes" : "no") << '\n';
-    stream << "black kingside castle: " << (kingside_castle[side_black] ? "yes" : "no") << '\n';
-    stream << "black queenside castle: " << (queenside_castle[side_black] ? "yes" : "no") << '\n';
-    stream << "halfmove clock: " << halfmove_clock << '\n';
-    stream << "fullmove number: " << fullmove_number << '\n';
+bool position::is_fivefold_repetition() const
+{
+    return repetitions >= 5;
+}
 
-    return b.to_string() + stream.str();
+bool position::is_fiftymove_rule() const
+{
+    return halfmove_clock >= 100;
+}
+
+bool position::is_seventyfivemove_rule() const
+{
+    return halfmove_clock >= 150;
+}
+
+bool position::is_insufficient_material() const
+{
+    int pawns = set_cardinality(b.piece_set(piece_pawn));
+    int rooks = set_cardinality(b.piece_set(piece_rook));
+    int knights = set_cardinality(b.piece_set(piece_knight));
+    int bishops = set_cardinality(b.piece_set(piece_bishop));
+    int queens = set_cardinality(b.piece_set(piece_queen));
+
+    if(pawns > 0 || rooks > 0 || queens > 0)
+    {
+        return false;
+    }
+
+    if((knights == 0 && bishops <= 1) || (knights <= 1 && bishops == 0))
+    {
+        return true;
+    }
+
+    if(bishops == 2)
+    {
+        bitboard white_bishop_set = b.piece_set(piece_bishop, side_white);
+        bitboard black_bishop_set = b.piece_set(piece_bishop, side_black);
+
+        if(!white_bishop_set || !white_bishop_set)
+        {
+            return false;
+        }
+
+        side white_bishop_color = color_of(set_first(white_bishop_set));
+        side black_bishop_color = color_of(set_first(black_bishop_set));
+
+        if(white_bishop_color == black_bishop_color)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool position::is_terminal() const
+{
+    return is_checkmate() || is_stalemate() || is_threefold_repetition() || is_fiftymove_rule() || is_insufficient_material();
 }
 
 void position::piecewise_moves(square from, bitboard tos, piece promote, std::vector<move>& moves) const

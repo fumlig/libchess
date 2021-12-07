@@ -17,7 +17,7 @@ namespace chess
 
 /// Chess game.
 ///
-/// Includes position and move history.
+/// Includes position and move history. Caches legal moves.
 class game
 {
 public:
@@ -29,6 +29,9 @@ public:
     const position& top() const;
     const std::size_t size() const;
     const bool empty() const;
+
+    const std::vector<move>& get_moves() const;
+    bool is_terminal() const;
 
     const position& get_position() const;
     const std::vector<std::pair<move, undo>>& get_history() const;
@@ -43,6 +46,8 @@ private:
     position p;
     std::vector<std::pair<move, undo>> history;
     std::unordered_map<std::size_t, int> repetitions;
+    mutable std::optional<std::vector<move>> moves;
+    mutable std::optional<bool> terminal;
 };
 
 

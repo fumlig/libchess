@@ -14,15 +14,19 @@ namespace chess
 game::game():
 p(),
 history(),
-repetitions()
+repetitions(),
+moves{std::nullopt},
+terminal{std::nullopt}
 {
     repetitions[p.hash()]++;
 }
 
 game::game(const position& p, const std::vector<move>& moves):
 p{p},
-history{},
-repetitions{}
+history(),
+repetitions(),
+moves{std::nullopt},
+terminal{std::nullopt}
 {
     repetitions[p.hash()]++;
 
@@ -38,6 +42,8 @@ void game::push(const chess::move& move)
     history.emplace_back(move, undo);
     repetitions[p.hash()]++;
     p.repetitions = repetitions[p.hash()];
+    moves = std::nullopt;
+    terminal = std::nullopt;
 }
 
 void game::pop()
@@ -47,6 +53,8 @@ void game::pop()
     p.undo_move(move, undo);
     history.pop_back();
     p.repetitions = repetitions[p.hash()];
+    moves = std::nullopt;
+    terminal = std::nullopt;
 }
 
 const position& game::top() const
@@ -63,6 +71,28 @@ const bool game::empty() const
 {
     return history.empty();
 }
+
+
+const std::vector<move>& game::get_moves() const
+{
+    if(!moves)
+    {
+        moves = p.moves();
+    }
+
+    return *moves;
+}
+
+bool game::is_terminal() const
+{
+    if(!terminal)
+    {
+        terminal = p.is_terminal();
+    }
+
+    return *terminal;
+}
+
 
 int game::get_repetitions(const std::optional<position>& position)
 {
@@ -88,9 +118,9 @@ const std::vector<std::pair<move, undo>>& game::get_history() const
 
 std::optional<float> game::get_score(side s) const
 {
-    if(p.is_terminal())
+    if(is_terminal())
     {
-        if(p.is_checkmate())
+        if(get_moves().empty() && p.is_check())
         {
             return p.get_turn() == opponent(s) ? 1.0f : 0.0f;
         }
@@ -105,9 +135,9 @@ std::optional<float> game::get_score(side s) const
 
 std::optional<int> game::get_value(side s) const
 {
-    if(p.is_terminal())
+    if(is_terminal())
     {
-        if(p.is_checkmate())
+        if(get_moves().empty() && p.is_check())
         {
             return p.get_turn() == opponent(s) ? 1 : -1;
         }

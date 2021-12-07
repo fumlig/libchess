@@ -1,4 +1,4 @@
-CXXFLAGS ?= -std=c++20 -g -O3  -Wall -Wpedantic
+CXXFLAGS ?= -std=c++2a -g -O3  -Wall -Wpedantic
 CPPFLAGS ?= -I.
 
 SOURCES = $(wildcard chess/*.cpp)

@@ -2,6 +2,7 @@
 #include <stack>
 #include <unordered_map>
 #include <optional>
+#include <sstream>
 
 #include "board.hpp"
 #include "position.hpp"
@@ -117,6 +118,19 @@ std::optional<int> game::get_value(side s) const
     }
 
     return std::nullopt;
+}
+
+
+std::string game::to_string() const
+{
+    std::ostringstream out;
+    out << p.to_string() << '\n' << "history: ";
+    for(auto [m, _]: history)
+    {
+        out << m.to_lan() << ' ';
+    }
+    out << '\n';
+    return out.str();
 }
 
 

@@ -37,6 +37,7 @@ int main(int argc, char* argv[])
 	test(file_from_san(file_to_san(file_a)) == file_a, "file_{to,from}_san");
 	test(rank_from_san(rank_to_san(rank_1)) == rank_1, "rank_{to,from}_san");
 	test(square_from_san(square_to_san(square_a1)) == square_a1, "square_{to,from}_san");
+	test(flip(square_a1) == square_a8, "flip");
 	test(opposite(direction_n) == direction_s, "direction");
 	test(forwards(side_black) == direction_s, "forwards");
 	test(square_set(square_a1) == 0b1, "square_set");

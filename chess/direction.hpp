@@ -3,6 +3,7 @@
 
 
 #include "side.hpp"
+#include "square.hpp"
 
 
 namespace chess
@@ -56,6 +57,7 @@ direction opposite(direction d);
 /// \returns Forwards for given side.
 direction forwards(side s);
 
+direction direction_of(square from, square to);
 
 }
 

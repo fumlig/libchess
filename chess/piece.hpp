@@ -55,6 +55,9 @@ std::pair<side, piece> piece_from_san(char san);
 char piece_to_san(side s, piece p);
 
 
+float value_of(piece p);
+
+
 }
 
 

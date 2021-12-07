@@ -70,4 +70,10 @@ std::string square_to_san(square sq)
 }
 
 
+square flip(square sq)
+{
+	return static_cast<square>(sq ^ 56);
+}
+
+
 }

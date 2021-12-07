@@ -70,7 +70,9 @@ public:
     /// \returns Position encoded by FEN.
     /// \throws Invalid argument if FEN seems to be invalid.
     /// \note To get the initial position, the default position constructor can be used.
-	static position from_fen(std::string_view fen);
+    static position from_fen(std::istream& in);
+    
+    static position from_fen(const std::string& fen);
 
     /// Convert position to Forsyth-Edwards Notation (FEN).
     ///

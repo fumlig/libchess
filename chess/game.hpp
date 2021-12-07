@@ -37,6 +37,8 @@ public:
     std::optional<float> get_score(side s = side_white) const;
     std::optional<int> get_value(side s = side_white) const;
 
+    std::string to_string() const;
+
 private:
     position p;
     std::vector<std::pair<move, undo>> history;

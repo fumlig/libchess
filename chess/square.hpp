@@ -159,6 +159,9 @@ char rank_to_san(rank r);
 std::string square_to_san(square sq);
 
 
+square flip(square sq);
+
+
 }
 
 

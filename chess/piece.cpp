@@ -1,6 +1,7 @@
 #include <utility>
 #include <string>
 #include <stdexcept>
+#include <limits>
 
 #include "side.hpp"
 #include "piece.hpp"
@@ -85,6 +86,40 @@ char piece_to_san(side s, piece p)
 	}
 
 	return c;
+}
+
+
+float value_of(piece p)
+{
+	float v = 0.0f;
+
+	switch(p)
+	{
+	case piece_pawn:
+		v = 1.0f;
+		break;
+	case piece_rook:
+		v = 5.0f;
+		break;
+	case piece_knight:
+		v = 3.0f;
+		break;
+	case piece_bishop:
+		v = 3.0f;
+		break;
+	case piece_queen:
+		v = 9.0f;
+		break;
+	case piece_king:
+		v = std::numeric_limits<float>::infinity();
+		break;
+	case piece_none:
+	default:
+        v = 0.0f;
+        break;	
+	}
+
+	return v;
 }
 
 

@@ -32,7 +32,7 @@ struct move
     /// \param from Source square.
     /// \param to Destination square.
     /// \param promote Promotion piece.
-	move(square from, square to, piece promote = piece_none);
+	move(square from, square to, piece promote = piece_queen);
 
 	// todo: implement
     //static move from_san(std::string_view san, const position& p);

@@ -58,15 +58,30 @@ repetitions{1}
 }
 
 
-position position::from_fen(std::string_view fen)
+position position::from_fen(const std::string& fen)
 {
-	std::string fen_string(fen);
-	std::istringstream fen_stream(fen_string);
+	std::istringstream in(fen);
+    return from_fen(in);
+}
 
-	std::string pieces_string, turn_string, castle_string, en_passant_string;
+
+position position::from_fen(std::istream& in)
+{
+    std::string dummy;
+    if(!(in >> dummy))
+    {
+        throw std::invalid_argument("fen stream empty");
+    }
+    
+    if(dummy == "startpos")
+    {
+        return position();
+    }
+
+	std::string pieces_string = dummy, turn_string, castle_string, en_passant_string;
 	int halfmove_clock, fullmove_number;
 
-	if(!(fen_stream >> pieces_string >> turn_string >> castle_string >> en_passant_string >> halfmove_clock >> fullmove_number))
+	if(!(in >> turn_string >> castle_string >> en_passant_string >> halfmove_clock >> fullmove_number))
 	{
 		throw std::invalid_argument("fen does not contain 6 fields");
 	}
@@ -607,7 +622,7 @@ std::string position::to_string(bool coords) const
     stream << "halfmove clock: " << halfmove_clock << '\n';
     stream << "fullmove number: " << fullmove_number << '\n';
 
-    return b.to_string() + stream.str();
+    return b.to_string(coords) + stream.str();
 }
 
 bool position::is_check() const

@@ -25,5 +25,9 @@ direction forwards(side s)
     }
 }
 
+direction direction_of(square from, square to)
+{
+    return static_cast<direction>(static_cast<int>(to) - static_cast<int>(from));
+}
 
 }
